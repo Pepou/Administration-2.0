@@ -4,7 +4,7 @@
 Module implementing Afficheurs.
 """
 
-from PyQt4.QtCore import pyqtSlot, Qt
+from PyQt4.QtCore import pyqtSlot, Qt, QThread, pyqtSignal
 from PyQt4.QtGui import QMainWindow
 from PyQt4 import QtGui
 from PyQt4 import QtCore
@@ -49,10 +49,13 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
             self.onglet[3-i].setEnabled(False)
            
         #bdd
-        self.db = AccesBdd(engine, meta)
-        list_cmr = self.db.recensement_cmr()
-        list_cmr.sort()
-        list_cmr.insert(0, "*")
+        bdd_thread_cmr= BddThread_CMR(engine)        
+        bdd_thread_cmr.signalist_cmr.connect(self.remplir_comboBox_cmr, Qt.QueuedConnection)
+        bdd_thread_cmr.start()
+#        self.db = AccesBdd(engine, meta)
+#        list_cmr = self.db.recensement_cmr()
+#        list_cmr.sort()
+#        list_cmr.insert(0, "*")
         
         #site
         self.db.recensement_sites(self.comboBox_code_client)
@@ -60,15 +63,7 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
         
         #insertion combobox
         
-        self.comboBox_cmr.installEventFilter(self)
-        model = QStandardItemModel()
-
-        for i,word in enumerate(list_cmr):
-            item = QStandardItem(word)
-            model.setItem(i, 0, item)
-
-        self.comboBox_cmr.setModel(model)
-        self.comboBox_cmr.setModelColumn(0)
+        
         
         #configuration largeur colonnes tablewidget
         self.tableWidget.setColumnWidth(0,300)
@@ -100,6 +95,20 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
         
         self.type_ouverture = 0 #ouverture pour une saisie normale
         
+    @pyqtSlot(list)
+    def remplir_comboBox_cmr(self, list_cmr):
+        self.comboBox_cmr.installEventFilter(self)
+        model = QStandardItemModel()
+    
+        for i,word in enumerate(list_cmr):
+            item = QStandardItem(word)
+            model.setItem(i, 0, item)
+    
+        self.comboBox_cmr.setModel(model)
+        self.comboBox_cmr.setModelColumn(0)
+    
+    
+    
     @pyqtSlot(str)
     def on_comboBox_famille_afficheur_activated(self, p0):
         """
@@ -1811,6 +1820,29 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
 
 
 
+
+
+
+
+class BddThread_CMR(QThread):   
+    """"""
+    signalist_cmr = pyqtSignal(list)
+    
+    def __init__(self, engine):
+        QThread.__init__(self)
+
+        self.db = AccesBdd(engine)
+#        self.parc = self.class_instrum.parc_complet()
+
+    def run(self): 
+        
+        
+        list_cmr = self.db.recensement_cmr()
+        list_cmr.sort()
+        list_cmr.insert(0, "*")
+        
+       
+        self.signalist_cmr.emit(list_cmr)
 
 
 

@@ -4,7 +4,7 @@
 Module implementing MainWindow.
 """
 
-from PyQt4.QtCore import pyqtSlot, pyqtSignal, QModelIndex, QThread
+from PyQt4.QtCore import pyqtSlot, pyqtSignal, QModelIndex, QThread, Qt
 from PyQt4.QtGui import QMainWindow
 
 from .Ui_Main_Administration import Ui_MainWindow
@@ -70,15 +70,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         
         bdd_thread_instrum = BddThread_Instrum(engine)        
-        bdd_thread_instrum.signalparc.connect(self.tableView_instruments.remplir)
-        bdd_thread_instrum.signalparc.connect(self.colonne_parc)
+        bdd_thread_instrum.signalparc.connect(self.tableView_instruments.remplir, Qt.QueuedConnection)
+        bdd_thread_instrum.signalparc.connect(self.combobox_colonne_parc, Qt.QueuedConnection)
         bdd_thread_instrum.start()
 #        self.class_instrum = Instrument(self.engine)        ###################
 #        self.parc = self.class_instrum.parc_complet()
 ##        self.parc["PERIODICITE_QUANTITE"].fillna('nan').astype(int)
 #        self.tableView_instruments.remplir(self.parc)
         bdd_thread_intervention= BddThread_Intervention(engine)        
-        bdd_thread_intervention.signalintervention.connect(self.tableView_reception.remplir)
+        bdd_thread_intervention.signalintervention.connect(self.tableView_reception.remplir, Qt.QueuedConnection)
         bdd_thread_intervention.start()
         
 #        class_intervention = Intervention(self.engine, self.meta) ############
@@ -96,8 +96,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.groupBox.setChecked(True)
     
     @pyqtSlot(pd.DataFrame)
-    def colonne_parc(self, parc):
-        print("emis")
+    def combobox_colonne_parc(self, parc):
+        #mise en place pour le tri
         self.parc = parc
         self.comboBox_nom_colonne.addItems(list(self.parc))
         

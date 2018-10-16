@@ -12,7 +12,7 @@ from PyQt4 import QtGui
 class AccesBdd():
     '''class gerant la bdd'''
     
-    def __init__(self, engine, meta):
+    def __init__(self, engine):
         
 
 #        self.namebdd = "Labo_Metro_Prod"#"Labo_metro_Test_5" #
@@ -26,8 +26,9 @@ class AccesBdd():
         Base = automap_base()
         
         self.engine =  engine
-        self.meta = meta        
+        self.meta = MetaData()         
         self.meta.reflect(bind=self.engine)
+        
         self.polynome_correction = Table('POLYNOME_CORRECTION', self.meta)
         self.connection = self.engine.connect()
         Session = sessionmaker(bind=self.engine)

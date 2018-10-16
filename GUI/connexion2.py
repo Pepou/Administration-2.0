@@ -66,7 +66,7 @@ class Connexion(QMainWindow, Ui_MainWindow):
 #        db = GestionBdd('db', self.namebdd, self.adressebdd, self.portbdd, login, password)
 #        connexion_laboTemp = db.premiere_connexion()
         
-        
+  
         engine = create_engine("postgresql+psycopg2://{}:{}@{}:{}/{}".format(login, password, self.adressebdd, self.portbdd, self.namebdd)) 
         self.meta = MetaData()        
 
