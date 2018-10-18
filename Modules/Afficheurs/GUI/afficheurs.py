@@ -58,7 +58,8 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
 #        list_cmr.insert(0, "*")
         
         #site
-        self.db.recensement_sites(self.comboBox_code_client)
+        BddThread_Remplir_Combobox_site(engine,self.comboBox_code_client )
+#        self.db.recensement_sites(self.comboBox_code_client)
         
         
         #insertion combobox
@@ -97,6 +98,7 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
         
     @pyqtSlot(list)
     def remplir_comboBox_cmr(self, list_cmr):
+        print("ocuocu")
         self.comboBox_cmr.installEventFilter(self)
         model = QStandardItemModel()
     
@@ -1834,18 +1836,28 @@ class BddThread_CMR(QThread):
         self.db = AccesBdd(engine)
 #        self.parc = self.class_instrum.parc_complet()
 
-    def run(self): 
-        
+    def run(self):         
         
         list_cmr = self.db.recensement_cmr()
         list_cmr.sort()
-        list_cmr.insert(0, "*")
-        
+        list_cmr.insert(0, "*")        
        
         self.signalist_cmr.emit(list_cmr)
 
 
+class BddThread_Remplir_Combobox_site(QThread):   
+    """"""
+    
+    def __init__(self, engine, combobox):
+        QThread.__init__(self)
 
+        self.db = AccesBdd(engine)
+#        self.parc = self.class_instrum.parc_complet()
+        self.combobox = combobox
+    def run(self):         
+        
+        self.db.recensement_sites(self.comboBox)
+        
 
 
 
