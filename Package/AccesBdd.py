@@ -5,6 +5,7 @@ import pandas as pd
 import pendulum
 from sqlalchemy.ext.automap import automap_base
 from PyQt4.QtGui import QMessageBox
+import pendulum
 
 class BDD():
     """class gerant l'ensemble de la bdd avec les engines/sessions et mapper"""
@@ -63,13 +64,17 @@ class Instrument():
     
     def parc_complet(self):
         """fonction qui retourne l'ensemble de la table instruments en pandas dataframe"""      
-
-        self.table_instrum = pd.read_sql(self.session.query(self.table_instruments).statement, 
-                                    self.session.bind)      
+        Session = sessionmaker(bind= self.engine)
+        session = Session()
+        meta = MetaData()
+        table_instruments = Table("INSTRUMENTS", meta, autoload=True,  autoload_with= self.engine)
+        table_instrum = pd.read_sql(session.query(table_instruments).statement, 
+                                    session.bind)      
        
-        self.table_instrum = self.table_instrum.sort_values(by = "ID_INSTRUM")
-        self.session.close()
-        return self.table_instrum
+        table_instrum = table_instrum.sort_values(by = "ID_INSTRUM")
+        session.close()
+        
+        return table_instrum
 
         
         
@@ -350,6 +355,16 @@ class Intervention():
         
         self.connection = self.engine.connect()
         self.table_intervention = Table("INTERVENTIONS", self.meta, autoload=True)
+        
+        Base = automap_base()
+        Base.prepare(engine, reflect=True)   
+        
+        self.INSTRUMENTS = Base.classes.INSTRUMENTS
+        self.INTERVENTIONS = Base.classes.INTERVENTIONS
+        self.ADMIN_CARTO = Base.classes.CARTO_ADMINISTRATION
+        self.AFFICHEURS_ADMIN = Base.classes.AFFICHEUR_CONTROLE_ADMINISTRATIF
+        self.ETAL_TEMP = Base.classes.ETALONNAGE_TEMP_ADMINISTRATION
+        
     
     def future_reception(self):
         try:
@@ -358,7 +373,9 @@ class Intervention():
             
             a = self.session.query(self.table_intervention).filter(
                             self.table_intervention.c.INTERVENTION == "Réception", 
-                            self.table_intervention.c.DATE_PROCHAINE_INTERVENTION >= date_du_jour )
+                            self.table_intervention.c.DATE_PROCHAINE_INTERVENTION >= date_du_jour )\
+                            .order_by(self.table_intervention.c.DATE_INTERVENTION.desc())\
+                            .limit(100)
             
             receptions = pd.read_sql(a.statement, 
                                         self.session.bind)   
@@ -373,8 +390,74 @@ class Intervention():
 #            yield None
         finally:
             self.session.close()
+    
+    def gestion_onglet_expedition(self):
+        """ fct qui va trier les differents tables pour afficher tout ce qui a ete expedier"""
+
+        date_annee_precedente = pendulum.now().subtract(years=1)
         
+        colonnes = ["Date", "Date realisation","Instrument", "N°Inventaire", "N°Equipement", "N°Plan", "N° Rapport"]
+        result = self.session.query(self.INTERVENTIONS.DATE_INTERVENTION,
+                                        self.ADMIN_CARTO.DATE_REALISATION, 
+                                       self.INTERVENTIONS.IDENTIFICATION,
+                                       self.INSTRUMENTS.N_SAP_PM,
+                                       self.INSTRUMENTS.N_EQUIPEMENT, 
+                                       self.INSTRUMENTS.N_PLAN,
+                                       self.ADMIN_CARTO.NUM_RAPPORT)\
+                                       .filter(and_(func.lower(self.INTERVENTIONS.INTERVENTION)== func.lower("Expédition"),
+                                                    self.ADMIN_CARTO.DATE_REALISATION >= pendulum.now().subtract(months=2), 
+                                                    self.ADMIN_CARTO.DATE_REALISATION<=self.INTERVENTIONS.DATE_INTERVENTION ))\
+                                       .join(self.ADMIN_CARTO, self.ADMIN_CARTO.IDENT_ENCEINTE == self.INTERVENTIONS.IDENTIFICATION)\
+                                       .join((self.INSTRUMENTS, self.ADMIN_CARTO.IDENT_ENCEINTE == self.INSTRUMENTS.IDENTIFICATION))\
+                                       .order_by(self.INTERVENTIONS.DATE_INTERVENTION.desc())
+#                                       .limit(100)
+#                                       .all()
+        cartos = pd.read_sql(result.statement, self.session.bind)
+        cartos.columns = colonnes
+#        cartos.stack().unique()
+#        print(cartos)
+#        print( cartos["N° Rapport"].unique())
+#        result = self.session.query(self.INTERVENTIONS.DATE_INTERVENTION,                                         
+#                                        self.INTERVENTIONS.IDENTIFICATION,
+#                                        self.INSTRUMENTS.N_SAP_PM, 
+#                                        self.INSTRUMENTS.N_EQUIPEMENT, 
+#                                        self.INSTRUMENTS.N_PLAN,
+#                                        self.AFFICHEURS_ADMIN.NUM_DOC)\
+#                                        .filter(and_(func.lower(self.INTERVENTIONS.INTERVENTION)== func.lower("Expédition"), self.INTERVENTIONS.DATE_INTERVENTION >= date_annee_precedente))\
+#                                        .join(self.INSTRUMENTS)\
+#                                        .join(self.AFFICHEURS_ADMIN)\
+#                                        .order_by(self.INTERVENTIONS.DATE_INTERVENTION.desc())\
+#                                       .limit(100)
+###                                       .all()
+##                                       
+##                                       #, self.INTERVENTIONS.IDENTIFICATION == self.AFFICHEURS_ADMIN.IDENTIFICATION )\
+##        
+###        print(afficheurs.all)
+#        afficheurs = pd.read_sql(result.statement, self.session.bind)
+#        afficheurs.columns = colonnes
+#        
+#
+#        
+#        
+#        result = self.session.query(self.INTERVENTIONS.DATE_INTERVENTION, 
+#                                       self.INTERVENTIONS.IDENTIFICATION,
+#                                       self.INSTRUMENTS.N_SAP_PM,
+#                                       self.INSTRUMENTS.N_EQUIPEMENT, 
+#                                       self.INSTRUMENTS.N_PLAN,
+#                                       self.ETAL_TEMP.NUM_DOCUMENT
+#                                       ).filter(and_(func.lower(self.INTERVENTIONS.INTERVENTION)== func.lower("Expédition"),self.INTERVENTIONS.DATE_INTERVENTION >= date_annee_precedente))\
+#                                       .join(self.ETAL_TEMP, self.INTERVENTIONS.IDENTIFICATION == self.ETAL_TEMP.IDENTIFICATION_INSTRUM )\
+#                                       .order_by(self.INTERVENTIONS.DATE_INTERVENTION.desc())\
+#                                       .limit(100)
+#                                       
+#
+#        temperatures = pd.read_sql(result.statement, self.session.bind)
+#        temperatures.columns = colonnes
+
+#        expeditions = pd.concat([cartos, temperatures])
+
         
+        return cartos
         
 class Client():
     """class qui permert de gerer les clients :

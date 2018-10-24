@@ -229,7 +229,8 @@ class Creation_Instrument(QDialog, Ui_Creation_Instrument):
         colonne_table_instru = ["IDENTIFICATION", "RESOLUTION","N_SERIE","CONSTRUCTEUR", "REFERENCE_CONSTRUCTEUR",
                                 "DOMAINE_MESURE", "FAMILLE", "DESIGNATION", "TYPE", 
                                 "DESIGNATION_LITTERALE","CODE", "SITE", "AFFECTATION", "SOUS_AFFECTATION", 
-                                "LOCALISATION",  "N_SAP_PM", "COMMENTAIRE", "ETAT_UTILISATION", "INSTRUMENT_LIE", "REF_INSTRUMENT"]
+                                "LOCALISATION",  "N_SAP_PM", "COMMENTAIRE", "ETAT_UTILISATION", "INSTRUMENT_LIE", "REF_INSTRUMENT", 
+                                "N_EQUIPEMENT"]
 
         fichier = QFileDialog.getOpenFileNames(self, "Choisir le fichier de donnees")#, "y:/1.METROLOGIE/1EBRO-1 FD5/")
         
@@ -306,13 +307,14 @@ class Creation_Instrument(QDialog, Ui_Creation_Instrument):
                             "Désignation":"DESIGNATION_LITTERALE", "Fournisseur":"CONSTRUCTEUR",
                             "Désignat. type": "REFERENCE_CONSTRUCTEUR", "Poste technique":"LOCALISATION", 
                             "Désignation.1":"SOUS_AFFECTATION", "N° série fabr.":"N_SERIE", 
-                            "Statut util.":"ETAT_UTILISATION", "Equipement":"N_SAP_PM"}            
+                            "Statut util.":"ETAT_UTILISATION", "Equipement":"N_EQUIPEMENT"}            
             
 
                 self.df = pd.read_excel(fichier[0], 0, 0)
                 self.df.rename(columns = colonnes, inplace = True)
-#                print(self.df)
-#                self.df["N_SAP_PM"]= self.df["IDENTIFICATION"]
+                
+                self.df["N_SAP_PM"]=self.df["IDENTIFICATION"]
+
                 self.df["FAMILLE"]= self.df["FAMILLE"].apply(lambda nom : nom_famille(nom))
                 
                 self.df["AFFECTATION"]= self.df["Sect.d'exploit."].apply(lambda num : secteur(num))

@@ -23,11 +23,15 @@ from Modules.Afficheurs.GUI.select_afficheur import Select_afficheur
 from Modules.Afficheurs.GUI.modification_afficheur import Modification_afficheur
 from PyQt4.QtCore import SIGNAL
 
+
+
+
+#from config import Config
 class Afficheurs(QMainWindow, Ui_MainWindow):
     """
     Class documentation goes here.
     """
-    def __init__(self,engine, meta,  parent=None):
+    def __init__(self,engine,parent=None):
         """
         Constructor
         
@@ -39,8 +43,7 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
         
         #gestion date
         self.dateEdit.setDate(QtCore.QDate.currentDate())
-        
-        
+                
         #gestion onglet :
         self.onglet = [self.tab, self.tab_2, self.tab_3, self.tab_4]
         self.nbr_pt =self.spinBox.value()
@@ -48,24 +51,22 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
         for i in range(self.nbr_pt+1): #+1 car s'arrete avant la derniere valeur
             self.onglet[3-i].setEnabled(False)
            
-        #bdd
-        bdd_thread_cmr= BddThread_CMR(engine)        
+
+        #BDD avec threads
+#        engine_test = Config.engine
+        self.db = AccesBdd(engine)
+        
+            ##CMR
+        bdd_thread_cmr= BddThread_CMR(self.db)        
         bdd_thread_cmr.signalist_cmr.connect(self.remplir_comboBox_cmr, Qt.QueuedConnection)
+        bdd_thread_cmr.signalist_db.connect(self.affectation_bdd)
         bdd_thread_cmr.start()
-#        self.db = AccesBdd(engine, meta)
-#        list_cmr = self.db.recensement_cmr()
-#        list_cmr.sort()
-#        list_cmr.insert(0, "*")
         
-        #site
-        BddThread_Remplir_Combobox_site(engine,self.comboBox_code_client )
-#        self.db.recensement_sites(self.comboBox_code_client)
-        
-        
-        #insertion combobox
-        
-        
-        
+            ##site
+        bdd_thread_site = BddThread_Remplir_Combobox_site(self.db)#,self.comboBox_code_client )
+        bdd_thread_site.signalSite.connect(self.comboBox_code_client.addItems)
+        bdd_thread_site.start()
+
         #configuration largeur colonnes tablewidget
         self.tableWidget.setColumnWidth(0,300)
         self.tableWidget.setColumnWidth(1,300)
@@ -95,10 +96,14 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
         self.n_ce_annule_remplace = ""
         
         self.type_ouverture = 0 #ouverture pour une saisie normale
-        
+    
+    @pyqtSlot(AccesBdd)
+    def affectation_bdd(self, db):
+        self.db = db
+    
     @pyqtSlot(list)
     def remplir_comboBox_cmr(self, list_cmr):
-        print("ocuocu")
+#        print("ocuocu")
         self.comboBox_cmr.installEventFilter(self)
         model = QStandardItemModel()
     
@@ -119,7 +124,7 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
         """
         try:
             self.comboBox_identification.clear()
-            nom_cmr = self.comboBox_cmr.currentText().split() #list avec nom et prenom
+#            nom_cmr = self.comboBox_cmr.currentText().split() #list avec nom et prenom
             
             type_afficheur = str(self.comboBox_famille_afficheur.currentText())
             referentiel = self.db.recensement_referentiel_emt(type_afficheur)
@@ -1829,11 +1834,13 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
 class BddThread_CMR(QThread):   
     """"""
     signalist_cmr = pyqtSignal(list)
+    signalist_db = pyqtSignal(AccesBdd)
     
-    def __init__(self, engine):
+    def __init__(self, db):
         QThread.__init__(self)
 
-        self.db = AccesBdd(engine)
+        self.db = db
+#        print(type(self.db))
 #        self.parc = self.class_instrum.parc_complet()
 
     def run(self):         
@@ -1843,21 +1850,25 @@ class BddThread_CMR(QThread):
         list_cmr.insert(0, "*")        
        
         self.signalist_cmr.emit(list_cmr)
+        self.signalist_db.emit(self.db)
 
 
 class BddThread_Remplir_Combobox_site(QThread):   
     """"""
+    signalSite = pyqtSignal(list)
     
-    def __init__(self, engine, combobox):
+    def __init__(self, db):
         QThread.__init__(self)
 
-        self.db = AccesBdd(engine)
+        self.db = db
 #        self.parc = self.class_instrum.parc_complet()
-        self.combobox = combobox
-    def run(self):         
+#        self.combobox = combobox
+    
+    def run(self):        
+#        print(self.combobox )
+        site = self.db.recensement_sites()
         
-        self.db.recensement_sites(self.comboBox)
-        
+        self.signalSite.emit(site)
 
 
 

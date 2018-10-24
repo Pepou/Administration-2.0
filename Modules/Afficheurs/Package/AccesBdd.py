@@ -50,7 +50,7 @@ class AccesBdd():
         self.connection.close()
         
     
-    def recensement_sites(self, combobox):        
+    def recensement_sites(self):        
                
         Session = sessionmaker(bind= self.engine)
         session = Session()
@@ -61,10 +61,11 @@ class AccesBdd():
                     join(self.ENTITE_CLIENT).\
                     filter(self.ENTITE_CLIENT.ABREVIATION == "EFS_CPDL").all()
             
-                       
-            code = set([x.CODE_CLIENT for x in table])
+#            print(table)
+#            code = [x.CODE_CLIENT for x in table]
     #        print(sites)
-            combobox.addItems(list(code))
+            return [x.CODE_CLIENT for x in table]
+#            combobox.addItems(list(code))
 
     #        session.close()
 #            return table

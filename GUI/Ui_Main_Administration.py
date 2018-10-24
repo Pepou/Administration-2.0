@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Developpement Informatique\Python\Administration\GUI\Main_Administration.ui'
+# Form implementation generated from reading ui file 'C:\Developpement Informatique\Python\Administration 2.0\GUI\Main_Administration.ui'
 #
 # Created by: PyQt4 UI code generator 4.11.4
 #
@@ -112,6 +112,14 @@ class Ui_MainWindow(object):
         self.graph_reception.setObjectName(_fromUtf8("graph_reception"))
         self.verticalLayout_3.addWidget(self.splitter_2)
         self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
+        self.tab_3 = QtGui.QWidget()
+        self.tab_3.setObjectName(_fromUtf8("tab_3"))
+        self.verticalLayout_8 = QtGui.QVBoxLayout(self.tab_3)
+        self.verticalLayout_8.setObjectName(_fromUtf8("verticalLayout_8"))
+        self.tableView_expedition = Tableview_donnees_fichier(self.tab_3)
+        self.tableView_expedition.setObjectName(_fromUtf8("tableView_expedition"))
+        self.verticalLayout_8.addWidget(self.tableView_expedition)
+        self.tabWidget.addTab(self.tab_3, _fromUtf8(""))
         self.verticalLayout.addWidget(self.tabWidget)
         self.verticalLayout_2.addLayout(self.verticalLayout)
         MainWindow.setCentralWidget(self.centralWidget)
@@ -241,6 +249,7 @@ class Ui_MainWindow(object):
         self.label_3.setText(_translate("MainWindow", "Nom Colonne", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Parc d\'instrument", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Planning de receptions", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Expeditions", None))
         self.menuTemperature.setTitle(_translate("MainWindow", "Temperature", None))
         self.menuAfficheurs.setTitle(_translate("MainWindow", "Afficheurs", None))
         self.menuAdministration.setTitle(_translate("MainWindow", "Administration", None))

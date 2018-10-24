@@ -3,14 +3,14 @@
 """
 Module implementing Modification_Instrument.
 """
-from PyQt4.QtCore import pyqtSlot, pyqtSignal
+from PyQt4.QtCore import pyqtSlot, pyqtSignal, QThread
     
 from PyQt4.QtGui import QDialog, QTableWidgetItem, QStandardItem, QStandardItemModel
 #import unicodedata
 
 from Package.AccesBdd import Instrument, Client, Secteur_exploitation, Poste_tech_sap
 
-import pandas as pd
+#import pandas as pd
 
 from .Ui_Modification_Instruments import Ui_Modification_Instrument
 
@@ -19,8 +19,7 @@ class Modification_Instrument(QDialog, Ui_Modification_Instrument):
     """
     Class documentation goes here.
     """
-    
-    
+
     signal_modification_ok = pyqtSignal()
     
     
@@ -52,10 +51,26 @@ class Modification_Instrument(QDialog, Ui_Modification_Instrument):
                 numero_ligne+= 1
             numero_colonne += 1
 
+#        self.comboBox_instrument.installEventFilter(self)
         
         #recuperation des tables
-        self.class_instrument = Instrument(engine)
-        parc = self.class_instrument.parc_complet()
+        
+        bdd_thread_instruments = BddThreadInstruments(engine) 
+        bdd_thread_instruments.signaltest.connect(self.gestion_combobox_extend)
+#        bdd_thread_instruments.signalcomboboxinstrument.connect(self.comboBox_instrument.setModel, Qt.QueuedConnection)
+#        bdd_thread_instruments.signalconfigcomboboxinstrument.connect(self.comboBox_instrument.setModelColumn, Qt.QueuedConnection)
+        bdd_thread_instruments.signaldomainemesure.connect(self.comboBox_domaine_mes.addItems)
+        bdd_thread_instruments.signaldesignation.connect(self.comboBox_designation.addItems)
+        bdd_thread_instruments.signaltype.connect(self.comboBox_type.addItems)
+        bdd_thread_instruments.signalcommentaire.connect(self.comboBox_commentaire.addItems)
+        bdd_thread_instruments.signaldesignation_lit.connect(self.comboBox_designation_litt.addItems)
+        bdd_thread_instruments.signalconstructeur.connect(self.comboBox_constructeur.addItems)
+        bdd_thread_instruments.signalref_constructeur.connect(self.comboBox_ref_constructeur.addItems)
+        
+#        
+        bdd_thread_instruments.start()
+        
+
         
         self.table_secteur = Secteur_exploitation(engine)
         self.table_poste_tech_sap = Poste_tech_sap(engine)
@@ -65,18 +80,7 @@ class Modification_Instrument(QDialog, Ui_Modification_Instrument):
         
         ####
         
-        instrums_non_lies = parc[(parc["ETAT_UTILISATION"] != True)]
-#        print(instrums_non_lies)
-        
-        self.comboBox_instrument.installEventFilter(self)
-        model = QStandardItemModel()
 
-        for i,word in enumerate(instrums_non_lies["IDENTIFICATION"]):
-            item = QStandardItem(word)
-            model.setItem(i, 0, item)
-
-        self.comboBox_instrument.setModel(model)
-        self.comboBox_instrument.setModelColumn(0)
         
         
         
@@ -85,39 +89,6 @@ class Modification_Instrument(QDialog, Ui_Modification_Instrument):
         self.comboBox_client.addItems(clients_tries["ABREVIATION"].tolist())
         
 
-        
-        domaine_mesure = list(set([x.upper() for x in parc["DOMAINE_MESURE"].tolist() if x]))
-        domaine_mesure.sort()
-        self.comboBox_domaine_mes.addItems(domaine_mesure)
-        
-        designation = list(set([x.upper() for x in parc["DESIGNATION"].tolist() if x]))
-        designation.sort()
-        self.comboBox_designation.addItems(designation)
-        
-        type = list(set([x.upper() for x in parc["TYPE"].tolist() if x]))
-        type.sort()
-        self.comboBox_type.addItems(type)
-        
-#        print(f"""commentaire {parc["COMMENTAIRE"]}""")
-        commentaire = list(set([x.upper() for x in parc["COMMENTAIRE"].tolist() if x]))
-        commentaire.sort()
-        commentaire.insert(0, "")
-        self.comboBox_commentaire.addItems(commentaire)
-#        self.comboBox_commentaire.setItemData(1,"")
-        
-        
-#        print(parc["DESIGNATION_LITTERALE"])
-        designation_lit = list(set(parc["DESIGNATION_LITTERALE"].tolist()))
-
-        self.comboBox_designation_litt.addItems(designation_lit)
-        
-        constructeur = list(set([x.upper() for x in parc["CONSTRUCTEUR"].tolist() if x]))
-#        constructeur.sort()
-        self.comboBox_constructeur.addItems(constructeur)
-        
-        ref_constructeur = list(set(parc["REFERENCE_CONSTRUCTEUR"].tolist()))
-#        ref_constructeur.sort()
-        self.comboBox_ref_constructeur.addItems(ref_constructeur)
         
         self.dict_famille = {"AR":"ANEMOMETRE", "AT":"AGITATEUR LABO", "AU":"AUTOCLAVE", "BA":"BALANCE / SYST PESEE", 
                     "BE":"MESURE DE PRESSION", "BM":"BAINS-MARIE", "CF":"CHAMBRE FROIDE", "CH":"MESURE DU TEMPS", 
@@ -141,13 +112,22 @@ class Modification_Instrument(QDialog, Ui_Modification_Instrument):
 
 #        self.setFixedSize(self.size()) 
     
+    @pyqtSlot(list)
+    def gestion_combobox_extend(self, instrum_non_lies):
+        
+#        print(instrum_non_lies)
+        model = QStandardItemModel()
 
+        for i,word in enumerate(instrum_non_lies):
+            item = QStandardItem(word)
+            model.setItem(i, 0, item)
+
+        self.comboBox_instrument.setModel(model)
+        self.comboBox_instrument.setModelColumn(0)
     
     def keyPressEvent(self, event):
         pass
-#        print(f"coucou {event}")
-#    def closeEvent(self, event):
-#        print("coucou je me casse")
+
     
     @pyqtSlot()
     def on_buttonBox_accepted(self):
@@ -332,3 +312,72 @@ class Modification_Instrument(QDialog, Ui_Modification_Instrument):
 #            id_site = int(sites_clients[sites_clients.CODE_CLIENT == site_client].ID_CLIENTS.values[0])
 #            print(f"id site {id_site}")
             pass
+
+
+class BddThreadInstruments(QThread):   
+    """importation table instruments et mise a disposition sous combobox"""
+    
+#    signalcomboboxinstrument = pyqtSignal(QStandardItemModel)
+    signaltest = pyqtSignal(list)
+    signalconfigcomboboxinstrument = pyqtSignal(int)
+    signaldomainemesure = pyqtSignal(list)
+    signaldesignation = pyqtSignal(list)
+    signaltype = pyqtSignal(list)
+    signalcommentaire = pyqtSignal(list)
+    signaldesignation_lit = pyqtSignal(list)
+    signalconstructeur = pyqtSignal(list)
+    signalref_constructeur = pyqtSignal(list)
+    
+    def __init__(self, engine):
+        QThread.__init__(self)
+
+        self.class_instrument = Instrument(engine)
+
+    def __del__(self):
+        self.quit()
+
+        
+    def run(self): 
+        
+        parc = self.class_instrument.parc_complet()
+        instrums_non_lies = parc[(parc["ETAT_UTILISATION"] != True)]
+#        print(instrums_non_lies)
+        
+        self.signaltest.emit(instrums_non_lies["IDENTIFICATION"].tolist())
+        
+       
+        domaine_mesure = list(set([x.upper() for x in parc["DOMAINE_MESURE"].tolist() if x]))
+        domaine_mesure.sort()
+        self.signaldomainemesure.emit(domaine_mesure)
+        
+        designation = list(set([x.upper() for x in parc["DESIGNATION"].tolist() if x]))
+        designation.sort()        
+        self.signaldesignation.emit(domaine_mesure)
+        
+        type = list(set([x.upper() for x in parc["TYPE"].tolist() if x]))
+        type.sort()
+        self.signaltype.emit(type)
+        
+        commentaire = list(set([x.upper() for x in parc["COMMENTAIRE"].tolist() if x]))
+        commentaire.sort()
+        commentaire.insert(0, "")
+        self.signalcommentaire.emit(commentaire)
+        
+        
+        designation_lit = list(set(parc["DESIGNATION_LITTERALE"].tolist()))
+        self.signaldesignation_lit.emit(designation_lit)
+        
+        constructeur = list(set([x.upper() for x in parc["CONSTRUCTEUR"].tolist() if x]))
+        self.signalconstructeur.emit(constructeur)
+        
+        
+        ref_constructeur = list(set(parc["REFERENCE_CONSTRUCTEUR"].tolist()))
+        self.signalref_constructeur.emit(ref_constructeur)
+        
+        
+        
+        
+        
+        
+        
+        

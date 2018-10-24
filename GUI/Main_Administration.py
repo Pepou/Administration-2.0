@@ -3,12 +3,17 @@
 """
 Module implementing MainWindow.
 """
-
-from PyQt4.QtCore import pyqtSlot, pyqtSignal, QModelIndex, QThread, Qt
+#from sqlalchemy.engine import create_engine
+from PyQt4.QtCore import pyqtSlot, pyqtSignal, QThread, Qt, QRunnable, QThreadPool, QObject
 from PyQt4.QtGui import QMainWindow
-
+#from PyQt4.QtCore import QT_VERSION_STR
 from .Ui_Main_Administration import Ui_MainWindow
 from Package.AccesBdd import Instrument, Intervention, Client, Secteur_exploitation, Poste_tech_sap
+
+import traceback, sys
+
+from GUI.connexion2 import Connexion
+
 from Modules.Indicateurs.GUI.Indicateurs import Indicateur
 from Modules.Afficheurs.GUI.afficheurs import Afficheurs
 
@@ -36,10 +41,15 @@ from GUI.Clients.Modification_Site_Client import Modification_Site_Client
 
 from Modules.Reception_expedition.GUI.Reception_Expedition import ReceptionExpedition
 
+
+#from sqlalchemy.engine import create_engine
+from config import Config
+
 import pendulum
 import warnings
-import numpy as np
+#import numpy as np
 import pandas as pd
+#import json
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     """
@@ -52,7 +62,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     signal_mise_a_dispo_post_tech_sap_efs = pyqtSignal(list)
     signal_mise_a_dispo_poste_tech_efs = pyqtSignal(list)
     
-    def __init__(self, engine, meta, login, password, parent=None):
+    def __init__(self, parent=None):
         """
         Constructor
         
@@ -61,38 +71,67 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__(parent)
         self.setupUi(self)
         
-#        print(f" mot de passe {self.password} login {self.login}")
         
-        self.dateEdit.setDate(pendulum.now('Europe/Paris'))
-        
-        self.engine = engine
-        self.meta = meta
-        
-        
-        bdd_thread_instrum = BddThread_Instrum(engine)        
-        bdd_thread_instrum.signalparc.connect(self.tableView_instruments.remplir, Qt.QueuedConnection)
-        bdd_thread_instrum.signalparc.connect(self.combobox_colonne_parc, Qt.QueuedConnection)
-        bdd_thread_instrum.start()
-#        self.class_instrum = Instrument(self.engine)        ###################
-#        self.parc = self.class_instrum.parc_complet()
-##        self.parc["PERIODICITE_QUANTITE"].fillna('nan').astype(int)
-#        self.tableView_instruments.remplir(self.parc)
-        bdd_thread_intervention= BddThread_Intervention(engine)        
-        bdd_thread_intervention.signalintervention.connect(self.tableView_reception.remplir, Qt.QueuedConnection)
-        bdd_thread_intervention.start()
-        
-#        class_intervention = Intervention(self.engine, self.meta) ############
-#        interventions = class_intervention.future_reception()
-#        self.tableView_reception.remplir(interventions.sort_values("DATE_PROCHAINE_INTERVENTION"))
-        
-        
-        #ne sert que pour labo_temp
-        self.login = login
-        self.password = password
-        
-        #mise en place pour le tri
-#        self.comboBox_nom_colonne.addItems(list(self.parc))
+#        cls.hide()
+        #####Ouverture de Connexion 
+        self.new_connexion = Connexion(self)
+        self.new_connexion.signalfermeture.connect(self.demarrage)
+        self.new_connexion.signalfermeture.connect(self.demarrage_bis)
+        self.new_connexion.signalfermeture.connect(self.demarrage_tierce)
+        self.new_connexion.signalfermeture.connect(self.demarrage_quadri)
 
+        self.new_connexion.setWindowModality(Qt.ApplicationModal)
+        self.new_connexion.show()
+        
+        self.threadpool = QThreadPool()
+
+    @pyqtSlot()
+    def demarrage(self):
+        """ fonction lancee apres la fermeture de la gui connexion"""
+        self.new_connexion.close()
+#        self.show()
+        self.dateEdit.setDate(pendulum.now('Europe/Paris'))
+
+        self.engine = Config.engine
+
+        self.login = Config.login
+        self.password = Config.password
+        
+        bdd = Config()
+        self.meta = bdd.creation_metadata()
+        
+#        self.demarrage_bis()
+##        self.demarrage_tierce()
+##        self.demarrage_quadri()
+
+#        
+    @pyqtSlot()
+    def demarrage_bis(self):
+
+        bdd_thread_instrum = WorkerDemarrage("instruments")
+        bdd_thread_instrum.signals.signalparc.connect(self.tableView_instruments.remplir)
+        bdd_thread_instrum.signals.signalparc.connect(self.combobox_colonne_parc)
+        
+#        bdd_thread_instrum.start() sub class qthread
+        self.threadpool.start(bdd_thread_instrum)
+        
+    @pyqtSlot()
+    def demarrage_tierce(self):
+        
+        bdd_thread_intervention= WorkerDemarrage("futures_receptions")
+        bdd_thread_intervention.signals.signalintervention.connect(self.tableView_reception.remplir)
+#        bdd_thread_intervention.start()
+        self.threadpool.start(bdd_thread_intervention)
+        
+    
+    @pyqtSlot()
+    def demarrage_quadri(self):
+#        print(str(self.threadpool.maxThreadCount()))
+        bdd_thread_intervention = WorkerDemarrage("expeditions")
+        bdd_thread_intervention.signals.signalexpeditions.connect(self.tableView_expedition.remplir)
+#        bdd_thread_intervention.start()
+        self.threadpool.start(bdd_thread_intervention)
+        
         self.groupBox.setChecked(True)
     
     @pyqtSlot(pd.DataFrame)
@@ -135,7 +174,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         Slot documentation goes here.
         """
-        self.module_afficheur = Afficheurs(self.engine, self.meta)
+        self.module_afficheur = Afficheurs(self.engine)
 #        self.caracterisation_bain = Caracterisation_Bain(self.engine,self.meta )
         
 #        self.connect(self.caracterisation_bain, SIGNAL("nouvellecaracterisation_bain(PyQt_PyObject)"), self.initialisation)
@@ -176,10 +215,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 #            for column in range(model.columnCount()):
             index = model.index(row, 0)
             id.append(int(model.data(index)))
-#        print(id)
-#        print(model.rowCount())
+
         instrument = self.parc.loc[self.parc["ID_INSTRUM"].isin(id)]
-#        print(instrument)
 
         self.modif_instrument = Modification_Instrument(self.engine, instrument)
         self.modif_instrument.signal_modification_ok.connect(self.mise_a_jour_parc)
@@ -421,12 +458,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.modif_site_client.show()
     
     
-#        print(service_dic)
-    
-    
-    
-#        print(service_dic)
-    
+
     @pyqtSlot(str)
     def on_lineEdit_valeur_textChanged(self, p0):
         """
@@ -532,37 +564,83 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.carto.showMaximized()
         
         
-class BddThread_Instrum(QThread):   
-    """"""
+
+class WorkerDemarrage(QRunnable):
+    """class permettant de realiser l'ensemble des appels dans la bdd 
+    et d'etre integree dans des trhead via qrunnable et qthreadpoll
+    
+    exemple en subclassant qthread:
+    class WorkerDemarrage(QThread):
+    lass permettant de realiser l'ensemble des appels dans la bdd 
+    et d'etre integree dans des trhead via qrunnable et qthreadpoll
+    
+    #    def __init__(self, type, parent= None):
+#        super(WorkerDemarrage, self).__init__(parent)
+    
+    """
+    
+ 
+    def __init__(self, type, parent= None):
+        super(WorkerDemarrage, self).__init__()
+        self.type = type
+#        a=Config()
+#        engine_bis = a.create_new_engine()
+#        print(Config.engine)
+
+        
+        self.signals = WorkerSignals()
+    
+    def parc_instrument(self):
+        """fct qui va retourner le parc"""
+#        print("parc")
+        class_instrum = Instrument(Config.engine)
+        parc = class_instrum.parc_complet()
+#        print(parc)
+        self.signals.signalparc.emit(parc)
+    
+    def futures_reception(self):
+        """fct qui va chercher les futures receptions """
+#        print("futur rrec")
+        class_intervention = Intervention(Config.engine)
+        interventions = class_intervention.future_reception() 
+        self.signals.signalintervention.emit(interventions)
+    
+    def expeditions(self):
+        class_intervention = Intervention(Config.engine)
+        expeditions = class_intervention.gestion_onglet_expedition()
+#        print(expeditions)
+        self.signals.signalexpeditions.emit(expeditions)
+        
+        
+    @pyqtSlot()
+    def run(self):
+        if self.type == "instruments":
+            self.parc_instrument()
+        
+        elif self.type == "futures_receptions":
+            self.futures_reception()
+            
+        elif self.type == "expeditions":
+            self.expeditions()
+        
+
+
+        
+class WorkerSignals(QObject):
+    '''
+        Gestion des signaux
+
+    '''
     signalparc = pyqtSignal(pd.DataFrame)
-    
-    def __init__(self, engine):
-        QThread.__init__(self)
-
-        self.class_instrum = Instrument(engine)        ###################
-#        self.parc = self.class_instrum.parc_complet()
-
-    def run(self): 
-        parc = self.class_instrum.parc_complet()
-        self.signalparc.emit(parc)
-        
-        
-class BddThread_Intervention(QThread):   
-    """"""
     signalintervention = pyqtSignal(pd.DataFrame)
-    
-    def __init__(self, engine):
-        QThread.__init__(self)
+    signalexpeditions = pyqtSignal(pd.DataFrame)
 
-        self.class_intervention = Intervention(engine)        ###################
-#        self.parc = self.class_instrum.parc_complet()
-
-    def run(self): 
-        
-        interventions = self.class_intervention.future_reception()
         
         
-        self.signalintervention.emit(interventions)
+        
+        
+        
+        
         
         
         

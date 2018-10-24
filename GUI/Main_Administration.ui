@@ -160,6 +160,16 @@
           </item>
          </layout>
         </widget>
+        <widget class="QWidget" name="tab_3">
+         <attribute name="title">
+          <string>Expeditions</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <item>
+           <widget class="Tableview_donnees_fichier" name="tableView_expedition"/>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </item>
      </layout>
