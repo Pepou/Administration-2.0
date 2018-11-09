@@ -4,6 +4,9 @@ from sqlalchemy.orm import *
 from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.automap import automap_base
 import pandas as pd
+from sqlalchemy import func
+
+import pendulum
 
 class AccesBdd():
     '''class gerant la bdd'''
@@ -90,25 +93,33 @@ class Intervention():
     """classe pour gerer la table intervention"""
     def __init__(self,engine):
         
-        Base = automap_base()
+#        Base = automap_base()
         self.engine = engine     
 #        self.meta = MetaData()
         self.connection = self.engine.connect()
+        metadata = MetaData() 
+        metadata.reflect(engine, only=['INTERVENTIONS'])
+        Base = automap_base(metadata=metadata)
         
-        Base.prepare(engine, reflect=True)
+        Base.prepare() 
+#        Base.prepare(engine, reflect=True)
         
         
         self.INTERVENTION = Base.classes.INTERVENTIONS
         
     def recuperation_interventions(self):
         """recupere la table entite_client et la met dans une dataframe pandas"""
-        meta = MetaData()
+#        meta = MetaData()
         Session = sessionmaker(bind= self.engine)
         session = Session()
-        
+        annee_derniere = pendulum.now('Europe/Paris').subtract(years = 1)
         try:
             #chargement de la table complete:
-            table = session.query(Table("INTERVENTIONS", meta, autoload=True,  autoload_with= self.engine))
+            table = session.query(self.INTERVENTION).filter(and_(or_(func.lower(self.INTERVENTION.INTERVENTION) == func.lower("Réception") , 
+                                                                        func.lower(self.INTERVENTION.INTERVENTION) == func.lower("Expédition")), 
+                                                                self.INTERVENTION.DATE_INTERVENTION >= annee_derniere))\
+                                                    .order_by(self.INTERVENTION.DATE_INTERVENTION.desc())
+                                   
             
             #mise sous pandas:
             table_intervention = pd.read_sql(table.statement, session.bind)      

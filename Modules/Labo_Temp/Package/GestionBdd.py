@@ -1025,6 +1025,9 @@ class GestionBdd:
         
         designation_generateur = self.recherche_designation_instrument(nom_generateur)
         
+#        print(f"nom gen {nom_generateur} nom etalon {nom_etalon}")
+#        print(f"designation gen {designation_generateur}")
+        
         query = QtSql.QSqlQuery()
             #Definition de la requete à executer :
         if designation_generateur == "Bain de Glace Fondante" :
@@ -1041,7 +1044,7 @@ class GestionBdd:
         
             
         else :
-            requete = str ("""SELECT "ARCHIVAGE", "TYPE", "u_FINALE", "U_DECLARATION" FROM "INCERTITUDES_MOYENS_MESURE" WHERE ("TYPE" ='COURANTE_AIR' AND "ARCHIVAGE" = 'FALSE');""")
+            requete = str ("""SELECT "ARCHIVAGE", "TYPE", "u_FINALE", "U_DECLARATION" FROM "INCERTITUDES_MOYENS_MESURE" WHERE ("TYPE" ='COURANTES_AIR' AND "ARCHIVAGE" = 'FALSE');""")
 
 #        print("requete recuperation_eiv {}".format(requete))
         query.exec_(requete)
