@@ -3,16 +3,18 @@
 """
 Module implementing Modification_Instrument.
 """
-from PyQt4.QtCore import pyqtSlot, pyqtSignal, QThread
+from PyQt4.QtCore import pyqtSlot, pyqtSignal, QThreadPool, QRunnable, QObject, QMutex
     
 from PyQt4.QtGui import QDialog, QTableWidgetItem, QStandardItem, QStandardItemModel
 #import unicodedata
 
 from Package.AccesBdd import Instrument, Client, Secteur_exploitation, Poste_tech_sap
 
-#import pandas as pd
+import pandas as pd
 
 from .Ui_Modification_Instruments import Ui_Modification_Instrument
+
+from config import Config
 
 
 class Modification_Instrument(QDialog, Ui_Modification_Instrument):
@@ -20,10 +22,12 @@ class Modification_Instrument(QDialog, Ui_Modification_Instrument):
     Class documentation goes here.
     """
 
-    signal_modification_ok = pyqtSignal()
+    
+    signal_modification_ok = pyqtSignal()    
+    closeApp = pyqtSignal()    
     
     
-    def __init__(self, engine, dataframe_instruments , parent=None):
+    def __init__(self, mainwindow, parent=None):
         """
         Constructor
         
@@ -31,62 +35,54 @@ class Modification_Instrument(QDialog, Ui_Modification_Instrument):
         """
         super().__init__(parent)
         self.setupUi(self)
+        self.mainwindow = mainwindow
+#        print(self.mainwindow.parc)
+        self.demarage()
         
-        #remplit le qtablewidget avec les instruments à modifier
-        numero_colonne = 0
-        for nom_colonne in list(dataframe_instruments):
-#                print(numero_colonne)
-            self.tableWidget.insertColumn(numero_colonne)
-            self.tableWidget.setHorizontalHeaderItem(numero_colonne, QTableWidgetItem(nom_colonne))
-            numero_ligne=0
-            for ele in dataframe_instruments[nom_colonne]:
-#                print(ele)
-#                print(f"num ligne {numero_ligne} , numero colonne {numero_colonne}")
-                if numero_colonne == 0:
-                    self.tableWidget.insertRow(numero_ligne)
-                    self.tableWidget.setItem(numero_ligne, numero_colonne, QTableWidgetItem(str(ele)))
-                
-                else:
-                    self.tableWidget.setItem(numero_ligne, numero_colonne, QTableWidgetItem(str(ele)))
-                numero_ligne+= 1
-            numero_colonne += 1
+    def demarage(self):
 
-#        self.comboBox_instrument.installEventFilter(self)
+        #signaux vers la mainwindows
+        self.mainwindow.signal_nvlle_recherche.connect(self.nvlle_recherche) 
+        
+#        self.fct_remplissage(self.mainwindow)
+#        
+        self.mainwindow.signal_parc_a_modi.connect(self.fonction_remplissage_tableau_instrums_a_modif)
+
+        self.threadpool = QThreadPool()
         
         #recuperation des tables
         
-        bdd_thread_instruments = BddThreadInstruments(engine) 
-        bdd_thread_instruments.signaltest.connect(self.gestion_combobox_extend)
-#        bdd_thread_instruments.signalcomboboxinstrument.connect(self.comboBox_instrument.setModel, Qt.QueuedConnection)
-#        bdd_thread_instruments.signalconfigcomboboxinstrument.connect(self.comboBox_instrument.setModelColumn, Qt.QueuedConnection)
-        bdd_thread_instruments.signaldomainemesure.connect(self.comboBox_domaine_mes.addItems)
-        bdd_thread_instruments.signaldesignation.connect(self.comboBox_designation.addItems)
-        bdd_thread_instruments.signaltype.connect(self.comboBox_type.addItems)
-        bdd_thread_instruments.signalcommentaire.connect(self.comboBox_commentaire.addItems)
-        bdd_thread_instruments.signaldesignation_lit.connect(self.comboBox_designation_litt.addItems)
-        bdd_thread_instruments.signalconstructeur.connect(self.comboBox_constructeur.addItems)
-        bdd_thread_instruments.signalref_constructeur.connect(self.comboBox_ref_constructeur.addItems)
+#        thread_parc_a_modif = WorkerDemarragefctremplissage(self.mainwindow, self.fct_remplissage)
+#        thread_parc_a_modif.signals.signalparcmodf.connect(self.fonction_remplissage_tableau_instrums_a_modif)
+#        self.threadpool.start(thread_parc_a_modif)
         
-#        
-        bdd_thread_instruments.start()
+        bdd_thread_instrum = WorkerDemarrageParc()
+        bdd_thread_instrum.signals.signalparc.connect(self.remplissage_combobox_instrums_non_liees)
+        bdd_thread_instrum.signals.signaldomaine_mesure.connect(self.comboBox_domaine_mes.addItems)
+        bdd_thread_instrum.signals.signaldomaine_designation.connect(self.comboBox_designation.addItems)
+        bdd_thread_instrum.signals.signaldomaine_type.connect(self.comboBox_type.addItems)
+        bdd_thread_instrum.signals.signaldomaine_commentaire.connect(self.comboBox_commentaire.addItems)
+        bdd_thread_instrum.signals.signaldomaine_designation_lit.connect(self.comboBox_designation_litt.addItems)
+        bdd_thread_instrum.signals.signaldomaine_constructeur.connect(self.comboBox_constructeur.addItems)
+        bdd_thread_instrum.signals.signaldomaine_ref_constructeur.connect(self.comboBox_ref_constructeur.addItems)
+        bdd_thread_instrum.signals.signalclasseinstrum.connect(self.affect_class_instrument)
         
-
-        
-        self.table_secteur = Secteur_exploitation(engine)
-        self.table_poste_tech_sap = Poste_tech_sap(engine)
-        
-        self.classe_clients = Client(engine)
-        self.clients = self.classe_clients.ensemble_entites_clients()
-        
-        ####
+        self.threadpool.start(bdd_thread_instrum)
         
 
+        bdd_thread_secteur_poste_tech = WorkerDemarrageSecteurPosteTech()
+        bdd_thread_secteur_poste_tech.signals.signaltable_secteur.connect(self.mise_dispo_table_secteur)
+        bdd_thread_secteur_poste_tech.signals.signaltable_poste_tech_sap.connect(self.mise_dispo_poste_tech)
+        
+        self.threadpool.start(bdd_thread_secteur_poste_tech)
         
         
-        
-        
-        clients_tries = self.clients.sort_values(by = "ID_ENT_CLIENT")       
-        self.comboBox_client.addItems(clients_tries["ABREVIATION"].tolist())
+        bdd_thread_clients = WorkerDemarrageClients()                
+        bdd_thread_clients.signals.signaltableclients.connect(self.mise_dispo_clients)
+        bdd_thread_clients.signals.signalensemble_entites_clients.connect(self.ensemble_clients)
+        bdd_thread_clients.signals.signalclients.connect(self.comboBox_client.addItems)
+                
+        self.threadpool.start(bdd_thread_clients)
         
 
         
@@ -111,20 +107,119 @@ class Modification_Instrument(QDialog, Ui_Modification_Instrument):
 #                              Qt.WindowMinMaxButtonsHint)
 
 #        self.setFixedSize(self.size()) 
-    
-    @pyqtSlot(list)
-    def gestion_combobox_extend(self, instrum_non_lies):
         
-#        print(instrum_non_lies)
+    def fct_remplissage(self, mainwindows):
+        """fct qui va voir sur le tableview du mainwindows"""
+        model = mainwindows.tableView_instruments.model()
+        id = []
+#        print("ca commence")
+        for row in range(model.rowCount()):
+#            for column in range(model.columnCount()):
+            index = model.index(row, 0)
+            id.append(int(model.data(index)))
+#        print("c'est fini")
+        instrument = mainwindows.parc.loc[mainwindows.parc["ID_INSTRUM"].isin(id)]
+        return instrument
+    
+    
+        
+    def closeEvent(self, evnt):
+        """reimplement la fermeture"""    
+        self.closeApp.emit()
+        
+
+    @pyqtSlot(Instrument)
+    def affect_class_instrument(self, cls_instrum):
+        mutex = QMutex()
+        mutex.lock()
+        self.class_instrument = cls_instrum
+        mutex.unlock()
+    
+    def fonction_remplissage_tableau_instrums_a_modif(self, dataframe_instruments):
+
+#        self.tableWidget.setRowCount(0)
+        
+        self.tableWidget.setColumnCount(dataframe_instruments.shape[1])
+        self.tableWidget.setRowCount(dataframe_instruments.shape[0])
+#        colonne_name = list(dataframe_instruments.columns)
+#        print(colonne_name)
+        
+#        for j in range(dataframe_instruments.shape[1]):
+#            self.tableWidget.setHorizontalHeaderItem(j, QTableWidgetItem(colonne_name[j]))
+#            for i in range(dataframe_instruments.shape[0]):                
+#                self.tableWidget.setItem(i,j,QTableWidgetItem(str(dataframe_instruments.iloc[i, j])))
+#                
+#                i += 1
+#            j +=1
+        
+        numero_colonne = 0
+        for nom_colonne in list(dataframe_instruments):
+#                print(numero_colonne)
+#            self.tableWidget.insertColumn(numero_colonne)
+            self.tableWidget.setHorizontalHeaderItem(numero_colonne, QTableWidgetItem(nom_colonne))
+            numero_ligne=0
+            for ele in dataframe_instruments[nom_colonne]:
+#                print(ele)
+#                print(f"num ligne {numero_ligne} , numero colonne {numero_colonne}")
+                if numero_colonne == 0:
+#                    self.tableWidget.insertRow(numero_ligne)
+                    self.tableWidget.setItem(numero_ligne, numero_colonne, QTableWidgetItem(str(ele)))
+                
+                else:
+                    self.tableWidget.setItem(numero_ligne, numero_colonne, QTableWidgetItem(str(ele)))
+                numero_ligne+= 1
+            numero_colonne += 1
+
+        
+    @pyqtSlot(Secteur_exploitation)
+    def mise_dispo_table_secteur(self, table_secteur):        
+        self.table_secteur = table_secteur
+    
+    @pyqtSlot(Poste_tech_sap)
+    def mise_dispo_poste_tech(self, poste_tech):        
+        self.table_poste_tech_sap = poste_tech
+    
+    @pyqtSlot(Client)
+    def mise_dispo_clients(self, client):        
+        mutex = QMutex()
+        mutex.lock()
+        self.classe_clients = client
+        
+        mutex.unlock()
+        
+        
+    @pyqtSlot(pd.DataFrame)
+    def ensemble_clients(self, ensemble_client):        
+        mutex = QMutex()
+        mutex.lock()
+        self.clients = ensemble_client
+        mutex.unlock()
+    
+    @pyqtSlot(pd.DataFrame)
+    def remplissage_combobox_instrums_non_liees(self, parc):
+        """fct qui recupere le signal et rempli le combobox"""
+        
+        instrums_non_lies = parc[(parc["ETAT_UTILISATION"] != True)]
+#        print(instrums_non_lies)
+        
+        self.comboBox_instrument.installEventFilter(self)
         model = QStandardItemModel()
 
-        for i,word in enumerate(instrum_non_lies):
+        for i,word in enumerate(instrums_non_lies["IDENTIFICATION"]):
             item = QStandardItem(word)
             model.setItem(i, 0, item)
 
         self.comboBox_instrument.setModel(model)
         self.comboBox_instrument.setModelColumn(0)
     
+    
+    @pyqtSlot(pd.DataFrame)
+    def nvlle_recherche(self, instrums_tries):
+        """fct qui est appeléé qd on recherche dans la fenetre principale"""
+#        print(instrums_tries)
+        self.fonction_remplissage_tableau_instrums_a_modif(instrums_tries)
+        
+        
     def keyPressEvent(self, event):
         pass
 
@@ -177,12 +272,13 @@ class Modification_Instrument(QDialog, Ui_Modification_Instrument):
 #                    self.trUtf8("La mise a jour n'a pu etre realisée"))
         
 
-        self.class_instrument.update_instruments(list_dictionnaire)        
+        self.class_instrument.update_instruments(list_dictionnaire)        #####p
 
                 
         if self.tableWidget.rowCount()== 0 :
             self.signal_modification_ok.emit()
-            self.close()
+            self.tableWidget.setRowCount(0)
+#            self.close()
             
         
     @pyqtSlot()
@@ -313,70 +409,150 @@ class Modification_Instrument(QDialog, Ui_Modification_Instrument):
 #            print(f"id site {id_site}")
             pass
 
-
-class BddThreadInstruments(QThread):   
-    """importation table instruments et mise a disposition sous combobox"""
+class WorkerDemarrageParc(QRunnable):
     
-#    signalcomboboxinstrument = pyqtSignal(QStandardItemModel)
-    signaltest = pyqtSignal(list)
-    signalconfigcomboboxinstrument = pyqtSignal(int)
-    signaldomainemesure = pyqtSignal(list)
-    signaldesignation = pyqtSignal(list)
-    signaltype = pyqtSignal(list)
-    signalcommentaire = pyqtSignal(list)
-    signaldesignation_lit = pyqtSignal(list)
-    signalconstructeur = pyqtSignal(list)
-    signalref_constructeur = pyqtSignal(list)
-    
-    def __init__(self, engine):
-        QThread.__init__(self)
+    def __init__(self, parent= None):
+        super(WorkerDemarrageParc, self).__init__()    
+        
+        self.signals = WorkerSignals()
+        
+        
+    def run(self):
+        
+        class_instrument = Instrument(Config.engine)
+        self.signals.signalclasseinstrum.emit(class_instrument)
+#        parc = class_instrument.parc_complet()  
+        parc = class_instrument.parc_complet()
+#        print(self.parc)
+        self.signals.signalparc.emit(parc)
+        
 
-        self.class_instrument = Instrument(engine)
-
-    def __del__(self):
-        self.quit()
-
+        """remplissage combobox domaine mesure"""
         
-    def run(self): 
-        
-        parc = self.class_instrument.parc_complet()
-        instrums_non_lies = parc[(parc["ETAT_UTILISATION"] != True)]
-#        print(instrums_non_lies)
-        
-        self.signaltest.emit(instrums_non_lies["IDENTIFICATION"].tolist())
-        
-       
         domaine_mesure = list(set([x.upper() for x in parc["DOMAINE_MESURE"].tolist() if x]))
         domaine_mesure.sort()
-        self.signaldomainemesure.emit(domaine_mesure)
+        self.signals.signaldomaine_mesure.emit(domaine_mesure)
+
+
+        """remplissage combobox domaine mesure"""
         
         designation = list(set([x.upper() for x in parc["DESIGNATION"].tolist() if x]))
-        designation.sort()        
-        self.signaldesignation.emit(domaine_mesure)
+        designation.sort()
+        self.signals.signaldomaine_designation.emit(designation)
+
+        """remplissage combobox domaine mesure"""
         
         type = list(set([x.upper() for x in parc["TYPE"].tolist() if x]))
         type.sort()
-        self.signaltype.emit(type)
+        self.signals.signaldomaine_type.emit(type)
         
+        """remplissage combobox commentaire"""
         commentaire = list(set([x.upper() for x in parc["COMMENTAIRE"].tolist() if x]))
         commentaire.sort()
         commentaire.insert(0, "")
-        self.signalcommentaire.emit(commentaire)
+        self.signals.signaldomaine_commentaire.emit(commentaire)
         
+        """remplissage combobox designation_lit"""
+        designation_lit = list(filter(None.__ne__, list(set(parc["DESIGNATION_LITTERALE"].tolist()))))
+        designation_lit.sort()
+        self.signals.signaldomaine_designation_lit.emit(designation_lit)
+#        self.comboBox_designation_litt.addItems(designation_lit)
         
-        designation_lit = list(set(parc["DESIGNATION_LITTERALE"].tolist()))
-        self.signaldesignation_lit.emit(designation_lit)
-        
+        """remplissage combobox constructeur"""
         constructeur = list(set([x.upper() for x in parc["CONSTRUCTEUR"].tolist() if x]))
-        self.signalconstructeur.emit(constructeur)
+        constructeur.sort()
+        self.signals.signaldomaine_constructeur.emit(constructeur)
+#        self.comboBox_constructeur.addItems(constructeur)
+        
+        """remplissage combobox ref_constructeur"""
+#        ref_constructeur = list(set(parc["REFERENCE_CONSTRUCTEUR"].tolist()))
+        ref_constructeur = list(filter(None.__ne__, list(set(parc["REFERENCE_CONSTRUCTEUR"].tolist()))))
+        ref_constructeur.sort()
+        self.signals.signaldomaine_ref_constructeur.emit(ref_constructeur)
+        
+#        self.comboBox_ref_constructeur.addItems(ref_constructeur)
+        
+
+#class WorkerDemarragefctremplissage(QRunnable):
+#    
+#    def __init__(self, mainwindow, fct , parent= None):
+#        super(WorkerDemarragefctremplissage, self).__init__()    
+#        
+#        self.signals = WorkerSignals()
+#        self.fct = fct
+#        self.mainwindow = mainwindow
+#    
+#    def run(self):
+#        
+#        parc = self.fct(self.mainwindow)
+#        self.signals.signalparcmodf.emit(parc)
+
+
+
+
+
+class WorkerDemarrageSecteurPosteTech(QRunnable):
+    
+    def __init__(self, parent= None):
+        super(WorkerDemarrageSecteurPosteTech, self).__init__()    
+        
+        self.signals = WorkerSignals()
+        
+    def run(self):
+        
+        table_secteur = Secteur_exploitation(Config.engine)
+        self.signals.signaltable_secteur.emit(table_secteur)
+        
+        table_poste_tech_sap = Poste_tech_sap(Config.engine)
+        self.signals.signaltable_poste_tech_sap.emit(table_poste_tech_sap)
+        
+class WorkerDemarrageClients(QRunnable):
+    
+    def __init__(self, parent= None):
+        super(WorkerDemarrageClients, self).__init__()    
+        
+        self.signals = WorkerSignals()
+        
+    def run(self):
+        classe_clients = Client(Config.engine)
+        self.signals.signaltableclients.emit(classe_clients)
+        clients = classe_clients.ensemble_entites_clients()
+#        print(f"type {type(clients)}")
+        self.signals.signalensemble_entites_clients.emit(clients)
+        clients_tries = clients.sort_values(by = "ID_ENT_CLIENT") 
+        
+          
+        self.signals.signalclients.emit(clients_tries["ABREVIATION"].tolist())
         
         
-        ref_constructeur = list(set(parc["REFERENCE_CONSTRUCTEUR"].tolist()))
-        self.signalref_constructeur.emit(ref_constructeur)
+class WorkerSignals(QObject):
+    '''
+        Gestion des signaux
+
+    '''
+    signalparc = pyqtSignal(pd.DataFrame)
+    signaldomaine_mesure= pyqtSignal(list)
+    signaldomaine_designation = pyqtSignal(list)
+    signaldomaine_type = pyqtSignal(list)
+    signaldomaine_commentaire = pyqtSignal(list)
+    signaldomaine_designation_lit = pyqtSignal(list)
+    signaldomaine_constructeur = pyqtSignal(list)
+    signaldomaine_ref_constructeur = pyqtSignal(list)
+    
+    signaltable_secteur = pyqtSignal(Secteur_exploitation)
+    signaltable_poste_tech_sap = pyqtSignal(Poste_tech_sap)
+    
+    signaltableclients = pyqtSignal(Client)
+    signalensemble_entites_clients = pyqtSignal(pd.DataFrame)
+    signalclients = pyqtSignal(list)
+    
+    signalintervention = pyqtSignal(pd.DataFrame)
+    signalexpeditions = pyqtSignal(pd.DataFrame)
+    
+    
+    signalclasseinstrum = pyqtSignal(Instrument)
         
-        
-        
-        
+    signalparcmodf = pyqtSignal(pd.DataFrame)
         
         
         

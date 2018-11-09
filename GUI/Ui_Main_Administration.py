@@ -94,6 +94,10 @@ class Ui_MainWindow(object):
         self.splitter.setOrientation(QtCore.Qt.Vertical)
         self.splitter.setObjectName(_fromUtf8("splitter"))
         self.tableView_instruments = Tableview_donnees_fichier(self.splitter)
+        font = QtGui.QFont()
+        font.setFamily(_fromUtf8("Calibri"))
+        font.setPointSize(10)
+        self.tableView_instruments.setFont(font)
         self.tableView_instruments.setObjectName(_fromUtf8("tableView_instruments"))
         self.graph_instruments = QtGui.QWidget(self.splitter)
         self.graph_instruments.setObjectName(_fromUtf8("graph_instruments"))
@@ -236,7 +240,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Administration 2.0", None))
         self.groupBox.setTitle(_translate("MainWindow", "Recherche", None))
         self.label.setText(_translate("MainWindow", "Valeur à chercher", None))
         self.label_2.setText(_translate("MainWindow", "Signe", None))

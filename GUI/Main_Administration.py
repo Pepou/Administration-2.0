@@ -4,13 +4,13 @@
 Module implementing MainWindow.
 """
 #from sqlalchemy.engine import create_engine
-from PyQt4.QtCore import pyqtSlot, pyqtSignal, QThread, Qt, QRunnable, QThreadPool, QObject
+from PyQt4.QtCore import pyqtSlot, pyqtSignal, Qt, QRunnable, QThreadPool, QObject
 from PyQt4.QtGui import QMainWindow
 #from PyQt4.QtCore import QT_VERSION_STR
 from .Ui_Main_Administration import Ui_MainWindow
 from Package.AccesBdd import Instrument, Intervention, Client, Secteur_exploitation, Poste_tech_sap
 
-import traceback, sys
+#import traceback, sys
 
 from GUI.connexion2 import Connexion
 
@@ -61,6 +61,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     signal_mise_a_dispo_client_efs = pyqtSignal(list)
     signal_mise_a_dispo_post_tech_sap_efs = pyqtSignal(list)
     signal_mise_a_dispo_poste_tech_efs = pyqtSignal(list)
+    signal_nvlle_recherche = pyqtSignal(pd.DataFrame)
+    
+    signal_parc_a_modi = pyqtSignal(pd.DataFrame)
     
     def __init__(self, parent=None):
         """
@@ -85,6 +88,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self.threadpool = QThreadPool()
 
+    
+    @pyqtSlot(Instrument)
+    def affect_class_instrument(self, cls_instrum):
+        """affect class_instrum"""
+
+        self.class_instrum = cls_instrum
+    
+    
+    
+    
     @pyqtSlot()
     def demarrage(self):
         """ fonction lancee apres la fermeture de la gui connexion"""
@@ -100,9 +113,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         bdd = Config()
         self.meta = bdd.creation_metadata()
         
-#        self.demarrage_bis()
-##        self.demarrage_tierce()
-##        self.demarrage_quadri()
 
 #        
     @pyqtSlot()
@@ -111,6 +121,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         bdd_thread_instrum = WorkerDemarrage("instruments")
         bdd_thread_instrum.signals.signalparc.connect(self.tableView_instruments.remplir)
         bdd_thread_instrum.signals.signalparc.connect(self.combobox_colonne_parc)
+        bdd_thread_instrum.signals.signalclasseinstrum.connect(self.affect_class_instrument)
         
 #        bdd_thread_instrum.start() sub class qthread
         self.threadpool.start(bdd_thread_instrum)
@@ -139,6 +150,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #mise en place pour le tri
         self.parc = parc
         self.comboBox_nom_colonne.addItems(list(self.parc))
+        self.comboBox_nom_colonne.setCurrentIndex(1)
         
         
     @pyqtSlot()
@@ -209,19 +221,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         Modification instrument
         """
-        model = self.tableView_instruments.model()
-        id = []
-        for row in range(model.rowCount()):
-#            for column in range(model.columnCount()):
-            index = model.index(row, 0)
-            id.append(int(model.data(index)))
+        def suppression():
+            """fct qui supprime l'objet self.modif_instrument"""
+            del self.modif_instrument
 
-        instrument = self.parc.loc[self.parc["ID_INSTRUM"].isin(id)]
+        def recup_parc_a_modif(): 
+            """fct qui recupere le aprc à modif et l'envoi dans un signal
+            dans la modul modif"""
+                 
+            model = self.tableView_instruments.model()
+            id = []
+            for row in range(model.rowCount()):
+    #            for column in range(model.columnCount()):
+                index = model.index(row, 0)
+                id.append(int(model.data(index)))
+    
+            instrument = self.parc.loc[self.parc["ID_INSTRUM"].isin(id)]
+            return instrument
 
-        self.modif_instrument = Modification_Instrument(self.engine, instrument)
+        self.modif_instrument = Modification_Instrument(self)
         self.modif_instrument.signal_modification_ok.connect(self.mise_a_jour_parc)
+        self.modif_instrument.closeApp.connect(suppression)
         self.modif_instrument.showMaximized()
         
+        ####♥on recupere les instruments à modifier et on envoie à la gui via signal
+
+        instrument = recup_parc_a_modif()
+        self.signal_parc_a_modi.emit(instrument)
+
         
     @pyqtSlot()
     def on_actionRecherche_triggered(self):
@@ -509,6 +536,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             elif signe == ">":
                 try:
                     tri = self.parc[self.parc[nom_colonne] > float(text)]
+                    print(id(tri))
                     self.tableView_instruments.remplir(tri)
 #                    print(tri)
                 except:
@@ -517,7 +545,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tableView_instruments.remplir(self.parc)
 #            if tri:
 #                self.tableView_instruments.remplir(tri)
-    
+        try:
+#            if self.modif_instrument:
+            self.signal_nvlle_recherche.emit(tri)
+#            mise_en_thread = WorkerSignalParcModif(self, tri)
+#            self.threadpool.start(mise_en_thread)
+            
+        except (UnboundLocalError, AttributeError):
+            pass
+            
     @pyqtSlot(int)
     def on_comboBox_signe_currentIndexChanged(self, index):
         """
@@ -537,7 +573,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def mise_a_jour_parc(self):
 #        print("coucou")
-        self.parc = self.class_instrum.parc_complet()
+        self.parc = self.class_instrum.parc_complet()  #####amettre en place
         self.tableView_instruments.remplir(self.parc)
         
         self.on_groupBox_clicked()
@@ -594,6 +630,7 @@ class WorkerDemarrage(QRunnable):
         """fct qui va retourner le parc"""
 #        print("parc")
         class_instrum = Instrument(Config.engine)
+        self.signals.signalclasseinstrum.emit(class_instrum)
         parc = class_instrum.parc_complet()
 #        print(parc)
         self.signals.signalparc.emit(parc)
@@ -625,7 +662,27 @@ class WorkerDemarrage(QRunnable):
         
 
 
+class WorkerSignalParcModif(QRunnable):
+    """mise en thread signal quil y a eu une recher pour la gui modif instruments
+    
+    """
+    
+ 
+    def __init__(self, mainwindow,tri, parent= None):
+        super(WorkerSignalParcModif, self).__init__()
+
+        self.mainwindow = mainwindow
+        self.tri = tri
+        self.signals = WorkerSignals()
+    
+    def run(self):
         
+        self.mainwindow.signal_nvlle_recherche.emit(self.tri)
+        
+
+
+
+
 class WorkerSignals(QObject):
     '''
         Gestion des signaux
@@ -634,7 +691,7 @@ class WorkerSignals(QObject):
     signalparc = pyqtSignal(pd.DataFrame)
     signalintervention = pyqtSignal(pd.DataFrame)
     signalexpeditions = pyqtSignal(pd.DataFrame)
-
+    signalclasseinstrum = pyqtSignal(Instrument)
         
         
         

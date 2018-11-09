@@ -5,7 +5,7 @@ Module implementing Cartographie.
 """
 
 from PyQt4.QtCore import pyqtSlot, Qt,pyqtSignal
-from PyQt4.QtGui import QMainWindow, QTableWidgetItem, QAbstractItemView, QMessageBox
+from PyQt4.QtGui import QMainWindow, QTableWidgetItem, QMessageBox
 
 from .Ui_Main_Carto import Ui_Cartographie
 from Modules.Cartographie.GUI.Interface_Centrales import  Exploitation_Centrales
@@ -13,7 +13,7 @@ from Modules.Cartographie.GUI.Visu_Modif.Interface_Centrales_Visu_Modif import  
 from Modules.Cartographie.GUI.Annule_Remplace.Interface_Centrales_Annule_Remplace import  Exploitation_Centrales_Annule_Remplace
 
 
-from Modules.Cartographie.Package.AccesBdd import AccesBdd, Carto_BDD
+from Modules.Cartographie.Package.AccesBdd import Carto_BDD
 
 
 class Cartographie(QMainWindow, Ui_Cartographie):

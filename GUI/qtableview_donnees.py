@@ -1,5 +1,5 @@
 from PyQt4.QtCore import  Qt, QAbstractTableModel#, QVariant
-from PyQt4.QtGui import  QTableView , QVBoxLayout, QLineEdit
+from PyQt4.QtGui import  QTableView 
 #import sys
 #import pandas as pd
 class Tableview_donnees_fichier(QTableView):
@@ -8,14 +8,9 @@ class Tableview_donnees_fichier(QTableView):
         super(Tableview_donnees_fichier, self).__init__(parent)
         
         
-#        filter_proxy_model = QtGui.QSortFilterProxyModel()
-#        filter_proxy_model.setSourceModel(model)
-#        filter_proxy_model.setFilterKeyColumn(2) # third column
-        # line edit for filtering
-#        layout = QVBoxLayout(s)
-#        line_edit = QLineEdit()
-#        line_edit.textChanged.connect(filter_proxy_model.setFilterRegExp)
-#        layout.addWidget(line_edit)
+
+        self.setAlternatingRowColors(True)
+#        self.setStyleSheet("alternate-background-color: lightGray;background-color: white;")
 
         
     def keyPressEvent(self, event):
@@ -28,7 +23,8 @@ class Tableview_donnees_fichier(QTableView):
         if items_tableView !=None:
             if clavier == 67 :
                 self.copySelection()
-                
+#            else:
+#                return 
 
     def remplir(self, donnees):
         """fct pour remplir le tableview attention les donnees sont des dataframes pandas"""
@@ -37,6 +33,7 @@ class Tableview_donnees_fichier(QTableView):
         self.donnees = donnees
         model = PandasModel(self.donnees) 
         self.setModel(model)
+#        self.setEditTriggers(QAbstractItemView::NoEditTriggers)
 #        self.resizeColumnsToContents()    
     
     def copySelection(self):
@@ -81,5 +78,19 @@ class PandasModel(QAbstractTableModel):
             return str(self._data.columns[col])
         return None
         
+#    def setData(self, index, value, role= Qt.EditRole):
+#        if index.isValid():
+#            if role == Qt.EditRole:
+#                print(value)
+#                row = index.row()
+#                column = index.column()
+#                self._data.iloc[row, column] = value
+#                return True
+##        print(self._data)
+#        return False
+#        
+#        
+#    def flags(self, index):
+#        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
         
 #    def setHeaderDate(self):

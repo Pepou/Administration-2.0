@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Administration 2.0</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -138,7 +138,14 @@
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
-            <widget class="Tableview_donnees_fichier" name="tableView_instruments"/>
+            <widget class="Tableview_donnees_fichier" name="tableView_instruments">
+             <property name="font">
+              <font>
+               <family>Calibri</family>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+            </widget>
             <widget class="QWidget" name="graph_instruments" native="true"/>
            </widget>
           </item>

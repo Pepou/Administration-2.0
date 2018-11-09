@@ -5,7 +5,7 @@ import pandas as pd
 import pendulum
 from sqlalchemy.ext.automap import automap_base
 from PyQt4.QtGui import QMessageBox
-import pendulum
+
 
 class BDD():
     """class gerant l'ensemble de la bdd avec les engines/sessions et mapper"""
@@ -44,33 +44,44 @@ class Instrument():
     
     def __init__(self, engine):
         
-        Base = automap_base()
+#        print("appel classe")
+        
         self.engine = engine 
         self.meta = MetaData()    
+        
+        metadata = MetaData() 
+        metadata.reflect(engine, only=['INSTRUMENTS'])
+        Base = automap_base(metadata=metadata)
+        
+       
 
+        
         self.connection = self.engine.connect()
+
         Session = sessionmaker(bind= self.engine)
         self.session = Session()
+
         
-        self.table_instruments = Table("INSTRUMENTS", self.meta, autoload=True,  autoload_with= self.engine)
-#        mapper(Instrument, self.table_instruments)
-#        print(a)    
-       
-        
-        Base.prepare(engine, reflect=True)        
+        Base.prepare()         
+
         
         self.INSTRUMENTS = Base.classes.INSTRUMENTS
- 
-    
+        
+
+        
+        
     def parc_complet(self):
         """fonction qui retourne l'ensemble de la table instruments en pandas dataframe"""      
         Session = sessionmaker(bind= self.engine)
         session = Session()
-        meta = MetaData()
-        table_instruments = Table("INSTRUMENTS", meta, autoload=True,  autoload_with= self.engine)
-        table_instrum = pd.read_sql(session.query(table_instruments).statement, 
+#        print("coucou")
+#        meta = MetaData()
+#        table_instruments = Table("INSTRUMENTS", meta, autoload=True,  autoload_with= self.engine)
+#        print(session.query(self.INSTRUMENTS).all())
+        table_instrum = pd.read_sql(session.query(self.INSTRUMENTS).statement, 
                                     session.bind)      
-       
+                                    
+#        print("lecture pandas")
         table_instrum = table_instrum.sort_values(by = "ID_INSTRUM")
         session.close()
         
@@ -85,7 +96,7 @@ class Instrument():
 #        print(list_dictionnaire)
 
         try:
-
+            
             for ele in list_dictionnaire:
     #            print(ele)
                 instrum_a_modif = session.query(self.INSTRUMENTS).get(ele["ID_INSTRUM"])
@@ -109,8 +120,11 @@ class Instrument():
                 instrum_a_modif.N_SAP_PM = ele["N_SAP_PM"]
                 instrum_a_modif.GESTIONNAIRE = ele["GESTIONNAIRE"]
                 instrum_a_modif.STATUT = ele["STATUT"]
-                instrum_a_modif.COMMENTAIRE = ele["COMMENTAIRE"]
+                instrum_a_modif.COMMENTAIRE = ele["COMMENTAIRE"]                
+                instrum_a_modif.N_EQUIPEMENT = ele["N_EQUIPEMENT"]
+                instrum_a_modif.N_PLAN = ele["N_PLAN"]
                 
+
     #                print(ele["PERIODICITE_QUANTITE"])
                 if ele["PERIODICITE_QUANTITE"] and ele["PERIODICITE_QUANTITE"] != "None" and ele["PERIODICITE_QUANTITE"] != "nan":
                     instrum_a_modif.PERIODICITE_QUANTITE = int(float(ele["PERIODICITE_QUANTITE"]))
@@ -162,8 +176,10 @@ class Instrument():
         
         Session = sessionmaker(bind= self.engine)
         session = Session()
+        meta = MetaData()
         trans = self.connection.begin()
-        i = self.table_instruments.insert()
+        table_instruments = table_instruments = Table("INSTRUMENTS", meta, autoload=True,  autoload_with= self.engine)
+        i = table_instruments.insert()
         
         query = session.query(self.INSTRUMENTS.IDENTIFICATION).all()
         query_list = [x[0] for x in query]
@@ -186,8 +202,11 @@ class Instrument():
         
         Session = sessionmaker(bind= self.engine)
         session = Session()
+        
+        meta = MetaData()  
         trans = self.connection.begin()
-        i = self.table_instruments.insert()
+        table_instruments = Table("INSTRUMENTS", meta, autoload=True,  autoload_with= self.engine)
+        i = table_instruments.insert()
         
         
         
@@ -350,14 +369,21 @@ class Intervention():
         self.meta = MetaData()        
         self.meta.reflect(bind=self.engine)
         
+        metadata = MetaData() 
+        metadata.reflect(engine, only=['INSTRUMENTS', 'INTERVENTIONS', 
+                                        'CARTO_ADMINISTRATION', 'AFFICHEUR_CONTROLE_ADMINISTRATIF',
+                                        'AFFICHEUR_CONTROLE_ADMINISTRATIF', 'ETALONNAGE_TEMP_ADMINISTRATION'])
+        Base = automap_base(metadata=metadata)
+
+        
         DBSession = sessionmaker(bind=engine)
         self.session = DBSession()
         
-        self.connection = self.engine.connect()
+#        self.connection = self.engine.connect()
         self.table_intervention = Table("INTERVENTIONS", self.meta, autoload=True)
         
-        Base = automap_base()
-        Base.prepare(engine, reflect=True)   
+#        Base = automap_base()
+        Base.prepare()   
         
         self.INSTRUMENTS = Base.classes.INSTRUMENTS
         self.INTERVENTIONS = Base.classes.INTERVENTIONS
@@ -368,10 +394,12 @@ class Intervention():
     
     def future_reception(self):
         try:
+            Session = sessionmaker(bind= self.engine)
+            session = Session()
             date_du_jour = pendulum.now('Europe/Paris')
     #        print(date_du_jour)
             
-            a = self.session.query(self.table_intervention).filter(
+            a = session.query(self.table_intervention).filter(
                             self.table_intervention.c.INTERVENTION == "Réception", 
                             self.table_intervention.c.DATE_PROCHAINE_INTERVENTION >= date_du_jour )\
                             .order_by(self.table_intervention.c.DATE_INTERVENTION.desc())\
@@ -394,7 +422,7 @@ class Intervention():
     def gestion_onglet_expedition(self):
         """ fct qui va trier les differents tables pour afficher tout ce qui a ete expedier"""
 
-        date_annee_precedente = pendulum.now().subtract(years=1)
+#        date_annee_precedente = pendulum.now().subtract(years=1)
         
         colonnes = ["Date", "Date realisation","Instrument", "N°Inventaire", "N°Equipement", "N°Plan", "N° Rapport"]
         result = self.session.query(self.INTERVENTIONS.DATE_INTERVENTION,
@@ -405,59 +433,90 @@ class Intervention():
                                        self.INSTRUMENTS.N_PLAN,
                                        self.ADMIN_CARTO.NUM_RAPPORT)\
                                        .filter(and_(func.lower(self.INTERVENTIONS.INTERVENTION)== func.lower("Expédition"),
-                                                    self.ADMIN_CARTO.DATE_REALISATION >= pendulum.now().subtract(months=2), 
+                                                    self.INTERVENTIONS.DATE_INTERVENTION >= pendulum.now().subtract(days=15), 
+                                                    self.ADMIN_CARTO.DATE_REALISATION >= pendulum.now().subtract(months=1), 
                                                     self.ADMIN_CARTO.DATE_REALISATION<=self.INTERVENTIONS.DATE_INTERVENTION ))\
                                        .join(self.ADMIN_CARTO, self.ADMIN_CARTO.IDENT_ENCEINTE == self.INTERVENTIONS.IDENTIFICATION)\
                                        .join((self.INSTRUMENTS, self.ADMIN_CARTO.IDENT_ENCEINTE == self.INSTRUMENTS.IDENTIFICATION))\
-                                       .order_by(self.INTERVENTIONS.DATE_INTERVENTION.desc())
+                                       .order_by(self.INTERVENTIONS.IDENTIFICATION)\
+                                       .distinct(self.INTERVENTIONS.IDENTIFICATION)\
+                                       .order_by(self.INTERVENTIONS.DATE_INTERVENTION.desc())\
+                                       
+#                                    .all()   
 #                                       .limit(100)
 #                                       .all()
+        
         cartos = pd.read_sql(result.statement, self.session.bind)
         cartos.columns = colonnes
+#        cartos.drop_duplicates("N° Rapport",  inplace=True)
 #        cartos.stack().unique()
 #        print(cartos)
 #        print( cartos["N° Rapport"].unique())
-#        result = self.session.query(self.INTERVENTIONS.DATE_INTERVENTION,                                         
-#                                        self.INTERVENTIONS.IDENTIFICATION,
-#                                        self.INSTRUMENTS.N_SAP_PM, 
-#                                        self.INSTRUMENTS.N_EQUIPEMENT, 
-#                                        self.INSTRUMENTS.N_PLAN,
-#                                        self.AFFICHEURS_ADMIN.NUM_DOC)\
-#                                        .filter(and_(func.lower(self.INTERVENTIONS.INTERVENTION)== func.lower("Expédition"), self.INTERVENTIONS.DATE_INTERVENTION >= date_annee_precedente))\
-#                                        .join(self.INSTRUMENTS)\
-#                                        .join(self.AFFICHEURS_ADMIN)\
-#                                        .order_by(self.INTERVENTIONS.DATE_INTERVENTION.desc())\
+        result = self.session.query(self.INTERVENTIONS.DATE_INTERVENTION,
+                                        self.AFFICHEURS_ADMIN.DATE_CONTROLE,         
+                                        self.INTERVENTIONS.IDENTIFICATION,
+                                        self.INSTRUMENTS.N_SAP_PM, 
+                                        self.INSTRUMENTS.N_EQUIPEMENT, 
+                                        self.INSTRUMENTS.N_PLAN,
+                                        self.AFFICHEURS_ADMIN.NUM_DOC)\
+                                        .filter(and_(func.lower(self.INTERVENTIONS.INTERVENTION)== func.lower("Expédition"),
+                                                    self.INTERVENTIONS.DATE_INTERVENTION >= pendulum.now().subtract(days=15), 
+                                                    self.AFFICHEURS_ADMIN.DATE_CONTROLE >= pendulum.now().subtract(months=1), 
+                                                    self.AFFICHEURS_ADMIN.DATE_CONTROLE<=self.INTERVENTIONS.DATE_INTERVENTION ))\
+                                        .join(self.INSTRUMENTS,  self.INTERVENTIONS.IDENTIFICATION == self.INSTRUMENTS.IDENTIFICATION)\
+                                        .join(self.AFFICHEURS_ADMIN, self.AFFICHEURS_ADMIN.IDENTIFICATION == self.INSTRUMENTS.ID_INSTRUM)\
+                                        .order_by(self.INTERVENTIONS.IDENTIFICATION)\
+                                        .distinct(self.INTERVENTIONS.IDENTIFICATION)\
+                                        .order_by(self.INTERVENTIONS.DATE_INTERVENTION.desc())
+#                                        .join(self.AFFICHEURS_ADMIN.IDENTIFICATION, self.AFFICHEURS_ADMIN.IDENTIFICATION == self.INSTRUMENTS.ID_INSTRUM)\
+#                                        
+#                                                    
+#                                        .join((self.INSTRUMENTS, self.AFFICHEURS_ADMIN.IDENTIFICATION == self.INSTRUMENTS.ID_INSTRUM))\
+#                                        .order_by(self.INTERVENTIONS.DATE_INTERVENTION.desc())
+#                                        .join(self.INSTRUMENTS,  self.INTERVENTIONS.IDENTIFICATION == self.INSTRUMENTS.IDENTIFICATION)\
 #                                       .limit(100)
 ###                                       .all()
-##                                       
+##                                       INSTRUMENTS
 ##                                       #, self.INTERVENTIONS.IDENTIFICATION == self.AFFICHEURS_ADMIN.IDENTIFICATION )\
 ##        
 ###        print(afficheurs.all)
-#        afficheurs = pd.read_sql(result.statement, self.session.bind)
-#        afficheurs.columns = colonnes
+        afficheurs = pd.read_sql(result.statement, self.session.bind)
+        afficheurs.columns = colonnes
+#        afficheurs.drop_duplicates("N° Rapport",  inplace=True)
+        
+#        print(afficheurs)
+##        
+##        
+        result = self.session.query(self.INTERVENTIONS.DATE_INTERVENTION,
+                                        self.ETAL_TEMP.DATE_ETAL, 
+                                       self.INTERVENTIONS.IDENTIFICATION,
+                                       self.INSTRUMENTS.N_SAP_PM,
+                                       self.INSTRUMENTS.N_EQUIPEMENT, 
+                                       self.INSTRUMENTS.N_PLAN,
+                                       self.ETAL_TEMP.NUM_DOCUMENT
+                                       )\
+                                        .filter(and_(func.lower(self.INTERVENTIONS.INTERVENTION)== func.lower("Expédition"),
+                                                    self.INTERVENTIONS.DATE_INTERVENTION >= pendulum.now().subtract(days=15), 
+                                                    self.ETAL_TEMP.DATE_ETAL <= self.INTERVENTIONS.DATE_INTERVENTION, 
+                                                    self.ETAL_TEMP.DATE_ETAL >= pendulum.now().subtract(months=1)))\
+                                        .join(self.ETAL_TEMP,  self.INTERVENTIONS.IDENTIFICATION == self.ETAL_TEMP.IDENTIFICATION_INSTRUM)\
+                                        .join((self.INSTRUMENTS, self.ETAL_TEMP.IDENTIFICATION_INSTRUM == self.INSTRUMENTS.IDENTIFICATION))\
+                                        .order_by(self.INTERVENTIONS.IDENTIFICATION)\
+                                        .distinct(self.INTERVENTIONS.IDENTIFICATION)\
+                                        .order_by(self.INTERVENTIONS.DATE_INTERVENTION.desc())
+##                                       .limit(10)
+##
+###                                       
+##
+        temperatures = pd.read_sql(result.statement, self.session.bind)
+        temperatures.columns = colonnes
 #        
+##        print(temperatures)
 #
-#        
-#        
-#        result = self.session.query(self.INTERVENTIONS.DATE_INTERVENTION, 
-#                                       self.INTERVENTIONS.IDENTIFICATION,
-#                                       self.INSTRUMENTS.N_SAP_PM,
-#                                       self.INSTRUMENTS.N_EQUIPEMENT, 
-#                                       self.INSTRUMENTS.N_PLAN,
-#                                       self.ETAL_TEMP.NUM_DOCUMENT
-#                                       ).filter(and_(func.lower(self.INTERVENTIONS.INTERVENTION)== func.lower("Expédition"),self.INTERVENTIONS.DATE_INTERVENTION >= date_annee_precedente))\
-#                                       .join(self.ETAL_TEMP, self.INTERVENTIONS.IDENTIFICATION == self.ETAL_TEMP.IDENTIFICATION_INSTRUM )\
-#                                       .order_by(self.INTERVENTIONS.DATE_INTERVENTION.desc())\
-#                                       .limit(100)
-#                                       
-#
-#        temperatures = pd.read_sql(result.statement, self.session.bind)
-#        temperatures.columns = colonnes
-
-#        expeditions = pd.concat([cartos, temperatures])
+        expeditions = pd.concat([cartos, afficheurs, temperatures])
 
         
-        return cartos
+        return expeditions
         
 class Client():
     """class qui permert de gerer les clients :
@@ -469,10 +528,15 @@ class Client():
         
         Base = automap_base()
         self.engine = engine     
-        self.meta = MetaData()
+#        self.meta = MetaData()
         self.connection = self.engine.connect()
         
-        Base.prepare(engine, reflect=True)
+        metadata = MetaData() 
+        metadata.reflect(engine, only=['ENTITE_CLIENT', 'CLIENTS', 
+                                        'SERVICES_CLIENT'])
+        Base = automap_base(metadata=metadata)
+        
+        Base.prepare()
         
         
         self.ENT_CLIENT = Base.classes.ENTITE_CLIENT
@@ -482,12 +546,12 @@ class Client():
         
     def ensemble_entites_clients(self):
         """recupere la table entite_client et la met dans une dataframe pandas"""
-        meta = MetaData()
+#        meta = MetaData()
         Session = sessionmaker(bind= self.engine)
         session = Session()
         try:
             #chargement de la table complete:
-            table = session.query(Table("ENTITE_CLIENT", meta, autoload=True,  autoload_with= self.engine))
+            table = session.query(self.ENT_CLIENT)
             
             #mise sous pandas:
             table_entite_client = pd.read_sql(table.statement, session.bind)      
@@ -505,13 +569,13 @@ class Client():
     
     def ensemble_sites_clients(self):
         """recupere la table clients qui correspond aux sites des clients et la met dans une dataframe pandas"""
-        meta = MetaData()
+#        meta = MetaData()
         Session = sessionmaker(bind= self.engine)
         session = Session()
         
         try:
             #chargement de la table complete:
-            table = session.query(Table("CLIENTS", meta, autoload=True,  autoload_with= self.engine))
+            table = session.query(self.CLIENTS)
             
             #mise sous pandas:
             table_site_client = pd.read_sql(table.statement, session.bind)
@@ -528,12 +592,12 @@ class Client():
             
     def ensemble_service_client(self):
         """recupere la table services du client  et la met dans une dataframe pandas"""
-        meta = MetaData()
+#        meta = MetaData()
         Session = sessionmaker(bind= self.engine)
         session = Session()
         try:
             #chargement de la table complete:
-            table = session.query(Table("SERVICES_CLIENT", meta, autoload=True,  autoload_with= self.engine))
+            table = session.query(self.SERVICE)
             
             #mise sous pandas:
             table_services_client = pd.read_sql(table.statement, session.bind)
