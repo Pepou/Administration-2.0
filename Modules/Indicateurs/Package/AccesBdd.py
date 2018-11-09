@@ -10,25 +10,29 @@ class AccesBdd():
     '''class gerant la bdd'''
     
     def __init__(self, engine, meta):
-#        self.namebdd = "Labo_Metro_Prod"#"Labo_Metro_Test_2"##"Labo_Metro_Test"#
-#        self.adressebdd = "10.42.1.74"#"localhost"#"10.42.1.74" # "localhost"   #"localhost"            
-#        self.portbdd = "5432"
-#        self.login = login
-#        self.password = password
+
            
             #création de l'"engine"
             
-        Base = automap_base()
+#        Base = automap_base()
         
         self.engine = engine #create_engine("postgresql+psycopg2://{}:{}@{}:{}/{}".format(self.login, self.password, self.adressebdd, self.portbdd, self.namebdd)) 
         self.meta = meta        
-#        self.meta.reflect(bind=self.engine)
+        self.meta.reflect(bind=self.engine)
         self.table_instruments = Table('INSTRUMENTS', self.meta)
         self.connection = self.engine.connect()
+        
+        
         Session = sessionmaker(bind=self.engine)
         self.session = Session.configure(bind=self.engine)
         
-        Base.prepare(self.engine, reflect=True)        
+        metadata = MetaData() 
+        metadata.reflect(engine, only=['ENTITE_CLIENT', 'CLIENTS'])
+        Base = automap_base(metadata=metadata)
+        
+        Base.prepare()
+        
+#        Base.prepare(self.engine, reflect=True)        
         
         self.ENTITE_CLIENT = Base.classes.ENTITE_CLIENT
         self.CLIENTS = Base.classes.CLIENTS
@@ -44,7 +48,7 @@ class AccesBdd():
         entites = session.query(self.ENTITE_CLIENT.ABREVIATION).order_by(self.ENTITE_CLIENT.ABREVIATION).all()
         session.close()
         return entites
-        print(entites)
+#        print(entites)
     
     def recensement_sites_client(self, entite_client):
         Session = sessionmaker(bind= self.engine)
@@ -57,7 +61,7 @@ class AccesBdd():
                                .order_by(self.CLIENTS.CODE_CLIENT)\
                                
                                
-        print([x[0] for x in result.all()])
+#        print([x[0] for x in result.all()])
         return [x[0] for x in result.all()] 
     
         
@@ -140,6 +144,7 @@ class AccesBdd():
         
         #Campagnes
         table = Table("CAMPAGNE_ETALONNAGE_TEMP", self.meta)
+#        print(table)
         ins = select([table.c.ID_CAMPAGNE_ETALONNAGE_TEMP]).where(and_(table.c.DATE >= date_debut, table.c.DATE <= date_fin)).order_by(table.c.ID_CAMPAGNE_ETALONNAGE_TEMP)
         result = self.connection.execute(ins)
         id_campagne = []
@@ -164,8 +169,11 @@ class AccesBdd():
         
         indicateurs_temperature["nbr_moyen_intrument_par_campagne"] = np.mean(np.array(nbr_instrument_par_campagne))
         
-        indicateurs_temperature["ecart_type_nbr_instrument_campagne"]=np.std(np.array(nbr_instrument_par_campagne), ddof = 1)
-         
+        if len(nbr_instrument_par_campagne)>1:
+            indicateurs_temperature["ecart_type_nbr_instrument_campagne"]=np.std(np.array(nbr_instrument_par_campagne), ddof = 1)
+        else:
+            indicateurs_temperature["ecart_type_nbr_instrument_campagne"]=0
+        
         indicateurs_temperature["nbr_instruments_max_par_campagne"] = np.amax(np.array(nbr_instrument_par_campagne))
         indicateurs_temperature["nbr_instruments_min_par_campagne"]= np.amin(np.array(nbr_instrument_par_campagne))
          
@@ -186,8 +194,10 @@ class AccesBdd():
         if len(nbr_pt_etal_par_campagne):
         
             indicateurs_temperature["nbr_moyen_pt_etal_par_campagne"] = np.mean(np.array(nbr_pt_etal_par_campagne))
-            
-            indicateurs_temperature["ecart_type_nbr_pt_etal_campagne"]= np.std(np.array(nbr_pt_etal_par_campagne), ddof = 1)
+            if len(nbr_pt_etal_par_campagne)>1:
+                indicateurs_temperature["ecart_type_nbr_pt_etal_campagne"]= np.std(np.array(nbr_pt_etal_par_campagne), ddof = 1)
+            else:
+                indicateurs_temperature["ecart_type_nbr_pt_etal_campagne"]=0
             indicateurs_temperature["nbr_pt_max_par_campagne"] = np.amax(np.array(nbr_pt_etal_par_campagne))
             indicateurs_temperature["nbr_pt_min_par_campagne"]= np.amin(np.array(nbr_pt_etal_par_campagne))
         else:
@@ -289,7 +299,7 @@ class AccesBdd():
         ins = select([table.c.ID_AFFICHEUR_ADMINISTRATIF, table.c.IDENTIFICATION, table.c.DATE_CONTROLE, table.c.NBR_PT]).where(and_(table.c.DATE_CONTROLE >= date_debut, table.c.DATE_CONTROLE <= date_fin)).order_by(table.c.DATE_CONTROLE)
         list_id_afficheur = self.connection.execute(ins).fetchall()
 
-        #print(list_id_afficheur)
+#        print(list_id_afficheur)
 
         conformite =[]
         for ele in list_id_afficheur:
@@ -322,7 +332,11 @@ class AccesBdd():
         
         nbr_pt = [x[3] for x in ctrl_afficheur ]
         indicateur_afficheur["nbr_pt_moyen_afficheur"] = np.mean(np.array(nbr_pt))
-        indicateur_afficheur["ecart_type_nbr_pt_afficheur"]=np.std(np.array(nbr_pt), ddof = 1)
+        if len(nbr_pt):
+            indicateur_afficheur["ecart_type_nbr_pt_afficheur"]=np.std(np.array(nbr_pt), ddof = 1)
+        else:
+            indicateur_afficheur["ecart_type_nbr_pt_afficheur"]=0
+        
         indicateur_afficheur["nbr_pt_max_afficheur"] = np.amax(np.array(nbr_pt))
         indicateur_afficheur["nbr_pt_min_afficheur"]= np.amin(np.array(nbr_pt))
         
@@ -387,7 +401,7 @@ class AccesBdd():
                         or_(table.c.INTERVENTION == "Expedition" ,table.c.INTERVENTION == "Expédition" )))\
                         .order_by(table.c.ID_INTERVENTION)
         list_instruments_expedies = self.connection.execute(ins).fetchall()
-        print("intrum expedie {}".format(list_instruments_expedies))
+#        print("intrum expedie {}".format(list_instruments_expedies))
 #        list_recep_expe_delais = []
         indicateur_delais = {}
         
@@ -397,7 +411,7 @@ class AccesBdd():
             
             instrument_par_designation = [x[0] for x in parc_instruments if x[2].upper() == designation]
             list_instruments_expedies_par_designation = [x for x in list_instruments_expedies if x[0] in instrument_par_designation]
-            print(" designation {} parc {}".format(designation, list_instruments_expedies_par_designation))
+#            print(" designation {} parc {}".format(designation, list_instruments_expedies_par_designation))
 
             for ele in list_instruments_expedies_par_designation:
                 
@@ -420,7 +434,10 @@ class AccesBdd():
 
             if len(list_delais) != 0 : 
                 indicateur_delais["delais_moyen_immobilisation" + " " + str(designation)] = np.mean(np.array(list_delais))
-                indicateur_delais["ecart_type_immobilisation" +  " " + str(designation)] = np.std(np.array(list_delais), ddof = 1)
+                if len(list_delais) > 1:
+                    indicateur_delais["ecart_type_immobilisation" +  " " + str(designation)] = np.std(np.array(list_delais), ddof = 1)
+                else:
+                    indicateur_delais["ecart_type_immobilisation" +  " " + str(designation)] = 0
                 indicateur_delais["delais_max_immobilisation" +  " " + str(designation)] = np.amax(np.array(list_delais))
                 indicateur_delais["delais_min_immobilisation" +  " " + str(designation)]= np.amin(np.array(list_delais))
                 
@@ -439,11 +456,11 @@ class AccesBdd():
         
     def instrument_temperature_etal(self, date_debut, date_fin):
         '''fct pour recuperer chaine de temperature etalonnées'''
-        
+#        print("couc")
         table = Table("ETALONNAGE_TEMP_ADMINISTRATION", self.meta)
         ins = select([table.c.IDENTIFICATION_INSTRUM, table.c.IDENTIFICATION_INSTRUM, table.c.DATE_ETAL]).where(and_(table.c.DATE_ETAL >= date_debut, table.c.DATE_ETAL <= date_fin))
         list_instruments = self.connection.execute(ins).fetchall()
-
+#        print(list_instruments)
         list_id = []
         for ele in list_instruments:
 

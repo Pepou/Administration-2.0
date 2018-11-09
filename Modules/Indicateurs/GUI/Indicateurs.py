@@ -18,7 +18,7 @@ class Indicateur(QMainWindow, Ui_MainWindow):
     """
     Class documentation goes here.
     """
-    def __init__(self,  engine, meta, parent=None):
+    def __init__(self,  engine, meta,  parent=None):
         """
         Constructor
         
@@ -28,7 +28,7 @@ class Indicateur(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.engine = engine
         self.meta = meta
-        self.db = AccesBdd(engine, meta)
+        self.db = AccesBdd(engine, self.meta)
         self.instruments = self.db.resencement_instrument_utilises()
 
         

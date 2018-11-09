@@ -197,7 +197,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         Slot documentation goes here.
         """
-        self.module_indicateur = Indicateur(self.engine, self.meta)
+        bdd = Config()
+        meta = bdd.creation_metadata()
+        self.module_indicateur = Indicateur(Config.engine, meta)
 #        self.caracterisation_bain = Caracterisation_Bain(self.engine,self.meta )
         
 #        self.connect(self.caracterisation_bain, SIGNAL("nouvellecaracterisation_bain(PyQt_PyObject)"), self.initialisation)
