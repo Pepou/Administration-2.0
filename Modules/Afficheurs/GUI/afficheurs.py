@@ -4,7 +4,7 @@
 Module implementing Afficheurs.
 """
 
-from PyQt4.QtCore import pyqtSlot, Qt, QThread, pyqtSignal
+from PyQt4.QtCore import pyqtSlot, Qt, QThread, pyqtSignal, QRunnable, QThreadPool, QObject
 from PyQt4.QtGui import QMainWindow
 from PyQt4 import QtGui
 from PyQt4 import QtCore
@@ -54,18 +54,19 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
 
         #BDD avec threads
 #        engine_test = Config.engine
+        self.threadpool = QThreadPool()
         self.db = AccesBdd(engine)
         
             ##CMR
         bdd_thread_cmr= BddThread_CMR(self.db)        
-        bdd_thread_cmr.signalist_cmr.connect(self.remplir_comboBox_cmr, Qt.QueuedConnection)
-        bdd_thread_cmr.signalist_db.connect(self.affectation_bdd)
-        bdd_thread_cmr.start()
+        bdd_thread_cmr.signals.signalist_cmr.connect(self.remplir_comboBox_cmr, Qt.QueuedConnection)
+        bdd_thread_cmr.signals.signalist_db.connect(self.affectation_bdd)
+        self.threadpool.start(bdd_thread_cmr)
         
             ##site
         bdd_thread_site = BddThread_Remplir_Combobox_site(self.db)#,self.comboBox_code_client )
-        bdd_thread_site.signalSite.connect(self.comboBox_code_client.addItems)
-        bdd_thread_site.start()
+        bdd_thread_site.signals.signalSite.connect(self.comboBox_code_client.addItems)
+        self.threadpool.start(bdd_thread_site)#.start()
 
         #configuration largeur colonnes tablewidget
         self.tableWidget.setColumnWidth(0,300)
@@ -316,10 +317,10 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
         """
         Slot documentation goes here.
         """
-
+#        print("couou")
         etalon_select = self.comboBox_ident_etalon.currentText()
         donnee_poly = self.db.recuperation_polynomes_etal(etalon_select)
-
+#        print(donnee_poly)
         mise_en_forme_combobox = []
         for ele in donnee_poly:
             donnee = str(ele[0] +" "+ "du" +" "+ ele[1].strftime("%d/%m/%y"))
@@ -1825,21 +1826,14 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
         self.comboBox_cmr.setCurrentIndex(0)
 
 
-
-
-
-
-
-
-class BddThread_CMR(QThread):   
+class BddThread_CMR(QRunnable):
     """"""
-    signalist_cmr = pyqtSignal(list)
-    signalist_db = pyqtSignal(AccesBdd)
-    
+        
     def __init__(self, db):
-        QThread.__init__(self)
+        QRunnable.__init__(self)
 
         self.db = db
+        self.signals = WorkerSignals()
 #        print(type(self.db))
 #        self.parc = self.class_instrum.parc_complet()
 
@@ -1849,18 +1843,19 @@ class BddThread_CMR(QThread):
         list_cmr.sort()
         list_cmr.insert(0, "*")        
        
-        self.signalist_cmr.emit(list_cmr)
-        self.signalist_db.emit(self.db)
+        self.signals.signalist_cmr.emit(list_cmr)
+        self.signals.signalist_db.emit(self.db)
 
 
-class BddThread_Remplir_Combobox_site(QThread):   
+class BddThread_Remplir_Combobox_site(QRunnable):   
     """"""
-    signalSite = pyqtSignal(list)
+    
     
     def __init__(self, db):
-        QThread.__init__(self)
+        QRunnable.__init__(self)
 
         self.db = db
+        self.signals = WorkerSignals()
 #        self.parc = self.class_instrum.parc_complet()
 #        self.combobox = combobox
     
@@ -1868,10 +1863,13 @@ class BddThread_Remplir_Combobox_site(QThread):
 #        print(self.combobox )
         site = self.db.recensement_sites()
         
-        self.signalSite.emit(site)
+        self.signals.signalSite.emit(site)
 
 
-
-
+class WorkerSignals(QObject):
+    
+    signalSite = pyqtSignal(list)
+    signalist_cmr = pyqtSignal(list)
+    signalist_db = pyqtSignal(AccesBdd)
 
 

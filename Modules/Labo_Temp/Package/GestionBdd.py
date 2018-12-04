@@ -104,7 +104,8 @@ class GestionBdd:
                         
         query.finish()
         
-                
+        print(list_identification_instrum)
+        
         return list_identification_instrum
     
     

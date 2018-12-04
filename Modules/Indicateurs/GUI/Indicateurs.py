@@ -337,7 +337,7 @@ class Indicateur(QMainWindow, Ui_MainWindow):
 #        
         list_expedition_reception_afficheurs = self.db.recup_date_pb_expedition_reception(date_debut, date_fin, pb_expedition_reception_afficheurs)
         list_reception_expedition_afficheurs = self.db.recup_date_pb_expedition_reception(date_debut, date_fin, pb_reception_expedition_afficheurs)
-#        print(list_reception_expedition_afficheurs)
+#        print(self.instruments)
         delais = self.db.delais_export_excel(date_debut, date_fin,  self.instruments)
 
         rapport = Export_excel()

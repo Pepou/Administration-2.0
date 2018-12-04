@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Developpement Informatique\Python\Administration\Modules\Cartographie\GUI\Main_Carto.ui'
+# Form implementation generated from reading ui file 'C:\Developpement Informatique\Python\Administration 2.0\Modules\Cartographie\GUI\Main_Carto.ui'
 #
 # Created by: PyQt4 UI code generator 4.11.4
 #
@@ -182,7 +182,7 @@ class Ui_Cartographie(object):
         QtCore.QMetaObject.connectSlotsByName(Cartographie)
 
     def retranslateUi(self, Cartographie):
-        Cartographie.setWindowTitle(_translate("Cartographie", "Cartographie v 1.0", None))
+        Cartographie.setWindowTitle(_translate("Cartographie", "Cartographie v 1.1", None))
         self.label_7.setText(_translate("Cartographie", "Recapitulatif des Cartographies", None))
         self.tableWidget_recap.setSortingEnabled(True)
         item = self.tableWidget_recap.horizontalHeaderItem(0)

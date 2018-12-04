@@ -538,14 +538,16 @@ class AccesBdd():
         
         
         indicateur_delais = {}
+        print(set_designation)
         
         for designation in set_designation:
             list_recep_expe_delais = []
             
             instrument_par_designation = [x[0] for x in parc_instruments if x[2].upper() == designation]
+            print(designation)
             list_instruments_expedies_par_designation = [x for x in list_instruments_expedies if x[0] in instrument_par_designation]
             
-#            print("list_instrumenst expedies {}".format(list_instruments_expedies_par_designation))
+            print("list_instrumenst expedies {}".format(list_instruments_expedies_par_designation))
             
             for ele in list_instruments_expedies_par_designation:
                 
