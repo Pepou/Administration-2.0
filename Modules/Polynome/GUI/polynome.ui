@@ -356,6 +356,22 @@
               </property>
              </widget>
             </item>
+            <item row="6" column="0">
+             <widget class="QLabel" name="label_6">
+              <property name="font">
+               <font>
+                <family>Calibri</family>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Resolution&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QLineEdit" name="lineEdit_resolution"/>
+            </item>
             <item row="7" column="0">
              <widget class="QLabel" name="label_16">
               <property name="sizePolicy">
@@ -389,21 +405,33 @@
               </item>
              </widget>
             </item>
-            <item row="6" column="1">
-             <widget class="QLineEdit" name="lineEdit_resolution"/>
-            </item>
-            <item row="6" column="0">
-             <widget class="QLabel" name="label_6">
+            <item row="8" column="0">
+             <widget class="QLabel" name="label_9">
               <property name="font">
                <font>
-                <family>Calibri</family>
-                <pointsize>12</pointsize>
+                <pointsize>10</pointsize>
                </font>
               </property>
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Resolution&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Commentaire&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
+            </item>
+            <item row="8" column="1">
+             <widget class="QTextEdit" name="textEdit_commentaire"/>
+            </item>
+            <item row="9" column="1">
+             <spacer name="verticalSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </widget>
@@ -599,8 +627,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>775</width>
-             <height>539</height>
+             <width>831</width>
+             <height>706</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2">

@@ -65,7 +65,7 @@ class AccesBdd():
     def renvoie_caracteristique_poly_n_ce(self, identification_instrument, n_ce):
         '''retourne les caracteristique polynome en fct n°CE'''
             
-        result = self.connection.execute('''SELECT "DATE_ETAL","ORDRE_POLY","COEFF_A","COEFF_B","COEFF_C","ARCHIVAGE","ID_POLYNOME" FROM "POLYNOME_CORRECTION" WHERE "NUM_CERTIFICAT" = '{}' AND "IDENTIFICATION" = '{}' '''''.format(n_ce, identification_instrument))
+        result = self.connection.execute('''SELECT "DATE_ETAL","ORDRE_POLY","COEFF_A","COEFF_B","COEFF_C","ARCHIVAGE","ID_POLYNOME","COMMENTAIRE" FROM "POLYNOME_CORRECTION" WHERE "NUM_CERTIFICAT" = '{}' AND "IDENTIFICATION" = '{}' '''''.format(n_ce, identification_instrument))
     
                
         for ele in result: 
@@ -151,8 +151,9 @@ class AccesBdd():
                                                     +""" "COEFF_B" ={}, """.format(donnees["COEFF_B"])\
                                                     +""" "COEFF_C" = {},""".format(donnees["COEFF_C"]) \
                                                     +""" "RESIDU_MAX" = {},""".format(donnees["RESIDU_MAX"])\
-                                                    +""" "MODELISATION" = {}""".format(donnees["MODELISATION"])\
-                                                    + """WHERE "IDENTIFICATION" ='{}' AND "NUM_CERTIFICAT"= '{}' """.format(identification_instrument, n_ce))
+                                                    +""" "MODELISATION" = {},""".format(donnees["MODELISATION"])\
+                                                    +""" "COMMENTAIRE" = '{}' """.format(donnees["COMMENTAIRE"])\
+                                                    + """ WHERE "IDENTIFICATION" ='{}' AND "NUM_CERTIFICAT"= '{}' """.format(identification_instrument, n_ce))
         
     def insert_table_polynome(self,  donnees):
         '''fct qui insert le poly dans la base '''

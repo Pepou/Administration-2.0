@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'Y:\Logiciels\Logiciels_techniques_labo\Polynome\A VALIDER  V1.11\GUI\polynome.ui'
+# Form implementation generated from reading ui file 'C:\Developpement Informatique\Python\Administration 2.0\Modules\Polynome\GUI\polynome.ui'
 #
-# Created: Mon Jan 25 15:09:20 2016
-#      by: PyQt4 UI code generator 4.11.3
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -72,7 +71,6 @@ class Ui_Polynome(object):
         self.splitter_2.setObjectName(_fromUtf8("splitter_2"))
         self.label_10 = QtGui.QLabel(self.splitter_2)
         self.label_10.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
-        self.label_10.setMargin(4)
         self.label_10.setObjectName(_fromUtf8("label_10"))
         self.layoutWidget = QtGui.QWidget(self.splitter_2)
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
@@ -160,6 +158,16 @@ class Ui_Polynome(object):
         self.textEdit_model.setMaximumSize(QtCore.QSize(16777215, 30))
         self.textEdit_model.setObjectName(_fromUtf8("textEdit_model"))
         self.formLayout.setWidget(5, QtGui.QFormLayout.FieldRole, self.textEdit_model)
+        self.label_6 = QtGui.QLabel(self.layoutWidget)
+        font = QtGui.QFont()
+        font.setFamily(_fromUtf8("Calibri"))
+        font.setPointSize(12)
+        self.label_6.setFont(font)
+        self.label_6.setObjectName(_fromUtf8("label_6"))
+        self.formLayout.setWidget(6, QtGui.QFormLayout.LabelRole, self.label_6)
+        self.lineEdit_resolution = QtGui.QLineEdit(self.layoutWidget)
+        self.lineEdit_resolution.setObjectName(_fromUtf8("lineEdit_resolution"))
+        self.formLayout.setWidget(6, QtGui.QFormLayout.FieldRole, self.lineEdit_resolution)
         self.label_16 = QtGui.QLabel(self.layoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -174,23 +182,23 @@ class Ui_Polynome(object):
         self.comboBox_etat_polynome.addItem(_fromUtf8(""))
         self.comboBox_etat_polynome.addItem(_fromUtf8(""))
         self.formLayout.setWidget(7, QtGui.QFormLayout.FieldRole, self.comboBox_etat_polynome)
-        self.lineEdit_resolution = QtGui.QLineEdit(self.layoutWidget)
-        self.lineEdit_resolution.setObjectName(_fromUtf8("lineEdit_resolution"))
-        self.formLayout.setWidget(6, QtGui.QFormLayout.FieldRole, self.lineEdit_resolution)
-        self.label_6 = QtGui.QLabel(self.layoutWidget)
+        self.label_9 = QtGui.QLabel(self.layoutWidget)
         font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Calibri"))
-        font.setPointSize(12)
-        self.label_6.setFont(font)
-        self.label_6.setObjectName(_fromUtf8("label_6"))
-        self.formLayout.setWidget(6, QtGui.QFormLayout.LabelRole, self.label_6)
+        font.setPointSize(10)
+        self.label_9.setFont(font)
+        self.label_9.setObjectName(_fromUtf8("label_9"))
+        self.formLayout.setWidget(8, QtGui.QFormLayout.LabelRole, self.label_9)
+        self.textEdit_commentaire = QtGui.QTextEdit(self.layoutWidget)
+        self.textEdit_commentaire.setObjectName(_fromUtf8("textEdit_commentaire"))
+        self.formLayout.setWidget(8, QtGui.QFormLayout.FieldRole, self.textEdit_commentaire)
+        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.formLayout.setItem(9, QtGui.QFormLayout.FieldRole, spacerItem)
         self.verticalLayout.addWidget(self.splitter_2)
         self.splitter_3 = QtGui.QSplitter(self.tab_1)
         self.splitter_3.setFrameShape(QtGui.QFrame.Panel)
         self.splitter_3.setOrientation(QtCore.Qt.Vertical)
         self.splitter_3.setObjectName(_fromUtf8("splitter_3"))
         self.label_5 = QtGui.QLabel(self.splitter_3)
-        self.label_5.setMargin(4)
         self.label_5.setObjectName(_fromUtf8("label_5"))
         self.tableWidget_table_etalonnage = QtGui.QTableWidget(self.splitter_3)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
@@ -224,7 +232,6 @@ class Ui_Polynome(object):
         self.layoutWidget_2 = QtGui.QWidget(self.splitter_3)
         self.layoutWidget_2.setObjectName(_fromUtf8("layoutWidget_2"))
         self.gridLayout = QtGui.QGridLayout(self.layoutWidget_2)
-        self.gridLayout.setMargin(0)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.Button_plus = QtGui.QPushButton(self.layoutWidget_2)
         self.Button_plus.setText(_fromUtf8(""))
@@ -240,8 +247,8 @@ class Ui_Polynome(object):
         self.buttton_supp.setIcon(icon1)
         self.buttton_supp.setObjectName(_fromUtf8("buttton_supp"))
         self.gridLayout.addWidget(self.buttton_supp, 0, 1, 1, 1)
-        spacerItem = QtGui.QSpacerItem(2000, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem, 0, 3, 1, 1)
+        spacerItem1 = QtGui.QSpacerItem(2000, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem1, 0, 3, 1, 1)
         self.tableWidget_polynome = QtGui.QTableWidget(self.layoutWidget_2)
         self.tableWidget_polynome.setObjectName(_fromUtf8("tableWidget_polynome"))
         self.tableWidget_polynome.setColumnCount(4)
@@ -275,7 +282,7 @@ class Ui_Polynome(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 775, 539))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 831, 706))
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
@@ -440,10 +447,11 @@ class Ui_Polynome(object):
         self.label_12.setText(_translate("Polynome", "<html><head/><body><p align=\"center\"><span style=\" font-size:11pt;\">Constructeur</span></p></body></html>", None))
         self.label_13.setText(_translate("Polynome", "<html><head/><body><p><span style=\" font-size:11pt;\">N° Serie</span></p></body></html>", None))
         self.label_14.setText(_translate("Polynome", "<html><head/><body><p align=\"center\"><span style=\" font-size:11pt;\">Model</span></p></body></html>", None))
+        self.label_6.setText(_translate("Polynome", "<html><head/><body><p align=\"center\">Resolution</p></body></html>", None))
         self.label_16.setText(_translate("Polynome", "<html><head/><body><p align=\"center\"><span style=\" font-size:11pt;\">Etat Polynome</span></p></body></html>", None))
         self.comboBox_etat_polynome.setItemText(0, _translate("Polynome", "Archivé", None))
         self.comboBox_etat_polynome.setItemText(1, _translate("Polynome", "Actif", None))
-        self.label_6.setText(_translate("Polynome", "<html><head/><body><p align=\"center\">Resolution</p></body></html>", None))
+        self.label_9.setText(_translate("Polynome", "<html><head/><body><p align=\"center\"><span style=\" font-size:11pt;\">Commentaire</span></p></body></html>", None))
         self.label_5.setText(_translate("Polynome", "<html><head/><body><p><span style=\" font-size:12pt; text-decoration: underline;\">Information Etalonnage</span></p></body></html>", None))
         item = self.tableWidget_table_etalonnage.horizontalHeaderItem(0)
         item.setText(_translate("Polynome", "Valeurs de l\'etalon corrigées", None))
@@ -493,8 +501,8 @@ class Ui_Polynome(object):
         self.actionSupprimer.setText(_translate("Polynome", "Supprimer", None))
         self.actionExport_Rapport.setText(_translate("Polynome", "Export Rapport", None))
 
-from pyqtgraph import PlotWidget
 from Modules.Polynome.GUI.extendedcombo import ExtendedCombo
+from pyqtgraph import PlotWidget
 import Modules.Polynome.Icones_rc
 
 if __name__ == "__main__":

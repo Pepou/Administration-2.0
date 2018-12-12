@@ -201,7 +201,7 @@ class Polynome(QMainWindow, Ui_Polynome):
         else:
             self.comboBox_etat_polynome.setCurrentIndex(1)
         
-        
+        self.textEdit_commentaire.setPlainText(caract_poly[7])
         #Donnees d'etalonnage
         donnee_table_poly = self.db.recuperation_donnees_table_polynome_table_etalonnage(caract_poly[6])
         
@@ -611,6 +611,8 @@ class Polynome(QMainWindow, Ui_Polynome):
         self.lineEdit_normalite_residus.clear()
         self.lineEdit_incertitude_modelisation.clear()
         self.lineEdit_resolution.clear()
+        self.textEdit_commentaire.clear()
+        
     def clear_onglet_2(self):
         '''fct qui efface le deuxime onglet'''
         
@@ -694,9 +696,11 @@ class Polynome(QMainWindow, Ui_Polynome):
         date_etal = date.toString('yyyy-MM-dd')
         residu_max = self.lineEdit_residu_max.text()
         u_modelisation = self.lineEdit_incertitude_modelisation.text()
+        commentaire = self.textEdit_commentaire.toPlainText()
                
         valeurs_saisie = { "DATE_ETAL": date_etal, "ARCHIVAGE": booleen, "ORDRE_POLY": ordre, "COEFF_A": a, 
-                                    "COEFF_B": b, "COEFF_C": c, "RESIDU_MAX": residu_max, "MODELISATION": u_modelisation}
+                                    "COEFF_B": b, "COEFF_C": c, "RESIDU_MAX": residu_max, 
+                                    "MODELISATION": u_modelisation, "COMMENTAIRE":commentaire}
          
         self.db. update_table_polynome(identification,  n_ce, valeurs_saisie)
         
@@ -854,10 +858,13 @@ class Polynome(QMainWindow, Ui_Polynome):
         creation_poly = datetime.today().strftime('%d-%m-%y')        
         residu_max = self.lineEdit_residu_max.text()
         u_modelisation = self.lineEdit_incertitude_modelisation.text()
+        commentaire = self.textEdit_commentaire. toPlainText()
+        
         valeurs_saisie = { "DATE_ETAL": date_etal, "ARCHIVAGE": booleen, "ORDRE_POLY": ordre, "COEFF_A": a, 
                                     "COEFF_B": b, "COEFF_C": c, "DATE_CREATION_POLY": creation_poly, 
                                     "IDENTIFICATION": identification, "NUM_CERTIFICAT": n_ce, 
-                                    "RESIDU_MAX": residu_max, "MODELISATION": u_modelisation}
+                                    "RESIDU_MAX": residu_max, "MODELISATION": u_modelisation, 
+                                    "COMMENTAIRE": commentaire}
                                     
         return valeurs_saisie
         
