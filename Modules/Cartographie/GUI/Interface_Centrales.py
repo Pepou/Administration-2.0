@@ -4,7 +4,7 @@
 Module implementing Exploitation_Centrales.
 """
 
-from PyQt4.QtCore import pyqtSlot, SIGNAL, QDate, pyqtSignal, QThread
+from PyQt4.QtCore import pyqtSlot, SIGNAL, QDate, pyqtSignal, QThread, Qt
 from PyQt4.QtGui import QMainWindow, QFileDialog, QTableWidgetItem, QComboBox, QMessageBox
 
 from .Ui_Interface_Centrales import Ui_Exploitation_Centrales
@@ -174,7 +174,9 @@ class Exploitation_Centrales(QMainWindow, Ui_Exploitation_Centrales):
 
                     list_nom_sondes_fichier = [x for x in list(self.df) if x not in["Date", "M", "N°", "Heure"]]
                     list_nom_sondes_fichier.insert(0, "*")
-                    
+#                    for i in range(len(list_nom_sondes_fichier)):
+#                        list_nom_sondes_fichier
+#                    
 #                    list_nom_sondes_fichier_bis = copy.deepcopy(list_nom_sondes_fichier)
                     
                     for ligne in range(self.tableWidget_sondes_centrale.rowCount()):
@@ -185,24 +187,51 @@ class Exploitation_Centrales(QMainWindow, Ui_Exploitation_Centrales):
 
                         nom_voie_bdd = self.tableWidget_sondes_centrale.item(ligne, 0).text()
                         
-                        nom_voie_bdd_split = ""
-                        for caractere_split in [" ", "_"]: #permet de decouper par rapport à diferent valeur de string à completer au fur et à mesure si nouveau format de sonde
-                                                       
-                            if len(nom_voie_bdd.split(caractere_split)) > len(nom_voie_bdd_split):
-                                nom_voie_bdd_split = nom_voie_bdd.split(caractere_split)
+                        
+                        index_combo = combobox_nom_fichier.findText(nom_voie_bdd,Qt.MatchContains )
+                        combobox_nom_fichier.setCurrentIndex(index_combo)
+                        
+#                        for ele in list_nom_sondes_fichier:
+#                            index = 0                            
+#                            if nom_voie_bdd.upper() in ele.upper():
+#                                combobox_nom_fichier.setCurrentIndex(index)
+#                                break
+#                            index+=1
+                        
+                        
+#                        nom_voie_bdd_split = ""
+#                        for caractere_split in [" ", "_"]: #permet de decouper par rapport à diferent valeur de string à completer au fur et à mesure si nouveau format de sonde
+#                                                       
+#                            if len(nom_voie_bdd.split(caractere_split)) > len(nom_voie_bdd_split):
+#                                nom_voie_bdd_split = nom_voie_bdd.split(caractere_split)
                         
                         
                         
-                        for i in reversed(range(1, len(nom_voie_bdd_split))):
-                            index=0
-                            for ele in list_nom_sondes_fichier:
-                                if nom_voie_bdd_split[i] in ele or nom_voie_bdd_split[i].upper() in str(ele).upper() :
-#                                        print(" ele good {}".format(ele))
-                                    combobox_nom_fichier.setCurrentIndex(index)
-#                                    list_nom_sondes_fichier.remove(ele)
-                                    break
+#                        for i in reversed(range(1, len(nom_voie_bdd_split))):
+#                            index=0
+#                            for ele in list_nom_sondes_fichier:
+#                                print(f"nom sondes fichier {ele}")
+#                                print(f"nom_voie_bdd_split {nom_voie_bdd_split[i]}")
+#                                
+#                                if nom_voie_bdd_split[i] in ele or nom_voie_bdd_split[i].upper() in str(ele).upper() :
+##                                        print(" ele good {}".format(ele))
+#                                    combobox_nom_fichier.setCurrentIndex(index)
+##                                    list_nom_sondes_fichier.remove(ele)
+#                                    break
+#
+#                                index +=1
 
-                                index +=1
+#                    list_sondes = (x[1] for x in self.sondes_centrales if x[6] == id_centrale)
+#                    
+#                    for i in range(len(self.tableWidget_sondes_centrale.rowCount)):
+#                        nom_voie_bdd = self.tableWidget_sondes_centrale.item(ligne, 0).text()
+#                        for ele in list_nom_sondes_fichier:
+#                            index = 0                            
+#                            if nom_voie_bdd.upper() in ele.upper():
+#                                combobox_nom_fichier.setCurrentIndex(index)
+#                                break
+#                            index+=1
+                        
       
                     self.tableWidget_sondes_centrale.resizeColumnsToContents()
 #                    print(self.df)    
