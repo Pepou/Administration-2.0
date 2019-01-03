@@ -185,52 +185,11 @@ class Exploitation_Centrales(QMainWindow, Ui_Exploitation_Centrales):
                        
                         combobox_nom_fichier.addItems(list_nom_sondes_fichier)
 
-                        nom_voie_bdd = self.tableWidget_sondes_centrale.item(ligne, 0).text()
-                        
-                        
+                        nom_voie_bdd = self.tableWidget_sondes_centrale.item(ligne, 0).text()                        
+                        #affectation de la voie par rapport au fichier
                         index_combo = combobox_nom_fichier.findText(nom_voie_bdd,Qt.MatchContains )
                         combobox_nom_fichier.setCurrentIndex(index_combo)
                         
-#                        for ele in list_nom_sondes_fichier:
-#                            index = 0                            
-#                            if nom_voie_bdd.upper() in ele.upper():
-#                                combobox_nom_fichier.setCurrentIndex(index)
-#                                break
-#                            index+=1
-                        
-                        
-#                        nom_voie_bdd_split = ""
-#                        for caractere_split in [" ", "_"]: #permet de decouper par rapport à diferent valeur de string à completer au fur et à mesure si nouveau format de sonde
-#                                                       
-#                            if len(nom_voie_bdd.split(caractere_split)) > len(nom_voie_bdd_split):
-#                                nom_voie_bdd_split = nom_voie_bdd.split(caractere_split)
-                        
-                        
-                        
-#                        for i in reversed(range(1, len(nom_voie_bdd_split))):
-#                            index=0
-#                            for ele in list_nom_sondes_fichier:
-#                                print(f"nom sondes fichier {ele}")
-#                                print(f"nom_voie_bdd_split {nom_voie_bdd_split[i]}")
-#                                
-#                                if nom_voie_bdd_split[i] in ele or nom_voie_bdd_split[i].upper() in str(ele).upper() :
-##                                        print(" ele good {}".format(ele))
-#                                    combobox_nom_fichier.setCurrentIndex(index)
-##                                    list_nom_sondes_fichier.remove(ele)
-#                                    break
-#
-#                                index +=1
-
-#                    list_sondes = (x[1] for x in self.sondes_centrales if x[6] == id_centrale)
-#                    
-#                    for i in range(len(self.tableWidget_sondes_centrale.rowCount)):
-#                        nom_voie_bdd = self.tableWidget_sondes_centrale.item(ligne, 0).text()
-#                        for ele in list_nom_sondes_fichier:
-#                            index = 0                            
-#                            if nom_voie_bdd.upper() in ele.upper():
-#                                combobox_nom_fichier.setCurrentIndex(index)
-#                                break
-#                            index+=1
                         
       
                     self.tableWidget_sondes_centrale.resizeColumnsToContents()
@@ -534,13 +493,16 @@ class Exploitation_Centrales(QMainWindow, Ui_Exploitation_Centrales):
         for i  in range(0, len(index_result)):
             
             y = float(result.loc[index_result[i]]["Moyenne"])
-            err = float(result.loc[index_result[i]]["U_mj"])
+            
+            if self.comboBox_application.currentText() != "Conservation des aliments":
+                err = float(result.loc[index_result[i]]["U_mj"])
+            else:
+                err = 0.0
 
             self.graph_resultat.canvas.ax.margins(0.04, 0.06) 
             self.graph_resultat.canvas.ax.errorbar(i, y, yerr=err, fmt='o')
 
             #conformite :
-
             if self.comboBox_signe_emt.currentText() == "±":
                 valeur_haute = temp_desiree + emt
                 valeur_basse = temp_desiree - emt
@@ -602,11 +564,14 @@ class Exploitation_Centrales(QMainWindow, Ui_Exploitation_Centrales):
             list_conf_sonde.append(conforme)            
             
             
-        if False in list_conf_sonde:
+        if False in list_conf_sonde :
             self.textEdit_conclusion_generale.setPlainText("Enceinte non Conforme")
-        else:
+        elif False not in list_conf_sonde and self.comboBox_application.currentText() != "Conservation des aliments":
             self.textEdit_conclusion_generale.setPlainText("Enceinte Conforme")
-            
+        elif False not in list_conf_sonde and self.comboBox_application.currentText() == "Conservation des aliments":
+            self.textEdit_conclusion_generale.setPlainText("Enceinte Conforme en moyenne")
+        
+        
         if (valeur_haute and valeur_basse) or (valeur_haute and valeur_basse == 0) or (valeur_haute == 0 and valeur_basse ):
             self.graph_resultat.canvas.ax.plot(list(range(len(index_result))), list(repeat(valeur_haute, len(index_result))), 
                                                             color='red',  linewidth=2)
@@ -919,7 +884,7 @@ class Exploitation_Centrales(QMainWindow, Ui_Exploitation_Centrales):
         """fct utilise par la dtataframe pour corriger les donnees qui recupere le polynome dans le tableau  tableWidget_sondes_centrale en fct de la position de la sonde 
         et retourne la valeur corrigée a integrer dans la dtataframe copy"""
         
-        print(mesure_brute.dtype)
+#        print(mesure_brute.dtype)
 
         if mesure_brute.name !="Date" :
             
@@ -1683,7 +1648,6 @@ class Exploitation_Centrales(QMainWindow, Ui_Exploitation_Centrales):
 #        print("coucuoc")
         
         if application != "Conservation CGR":
-
             
             self.tab_simu.setEnabled(False)
             self.nettoyage_onglet_simu()
@@ -1729,6 +1693,15 @@ class Exploitation_Centrales(QMainWindow, Ui_Exploitation_Centrales):
             
             self.tab_simu.setEnabled(False)
             self.nettoyage_onglet_simu()
+            
+        elif application == "Conservation des aliments":
+#            self.comboBox_condition_desiree.addItem("4")
+            self.comboBox_emt.setCurrentIndex(2)
+            self.comboBox_signe_emt.setCurrentIndex(0)
+            self.lineEdit_condition_des.setText("2")
+            self.tab_simu.setEnabled(False)
+            self.nettoyage_onglet_simu()
+            
 
         else:
             self.tab_simu.setEnabled(False)
@@ -1791,6 +1764,46 @@ class Exploitation_Centrales(QMainWindow, Ui_Exploitation_Centrales):
                 self.lineEdit_consigne.setStyleSheet(
                 """QLineEdit { background-color: red }""")
                     
+    
+    @pyqtSlot(int)
+    def on_comboBox_motif_carto_currentIndexChanged(self, index):
+        """mise en place de commentaire"""
+
+        if index>0:
+            list_text =  self.textEdit_objet_remarques.toPlainText().splitlines()
+            self.textEdit_objet_remarques.clear()
+            list_text_modif = [x for x in list_text if "Caractérisation" not in x]
+
+            if index == 1:
+                list_text_modif.insert(0, "Caractérisation suite à une mise en service.")
+            elif index == 2:
+                list_text_modif.insert(0, "Caractérisation suite à une intervention.")
+            elif index == 3:
+                list_text_modif.insert(0, "Caractérisation dans la cadre d'un suivi périodique.")
+
+            for ele in list_text_modif:
+                self.textEdit_objet_remarques.append(ele)
+                
+                
+    @pyqtSlot(int)
+    def on_comboBox_charge_currentIndexChanged(self, index):
+        """mise en place de commentaire"""
+
+        if index>0:
+            list_text =  self.textEdit_objet_remarques.toPlainText().splitlines()
+            self.textEdit_objet_remarques.clear()
+            list_text_modif = [x for x in list_text if "Prestation" not in x]
+
+            if index == 1:
+                list_text_modif.insert(1, "Prestation realisée à vide.")
+            elif index == 2:
+                list_text_modif.insert(1, "Prestation realisée avec une charge ≤ à 50% de la capacité totale de l'enceinte.")
+            elif index == 3:
+                list_text_modif.insert(1, "Prestation realisée avec une charge > à 50% de la capacité totale de l'enceinte.")
+
+            for ele in list_text_modif:
+                self.textEdit_objet_remarques.append(ele)
+    
     def nettoyage_onglet_simu(self):
         """ fonction qui efface l'onglet simulation"""
         
@@ -1888,12 +1901,10 @@ class Affichage_graphThread(QThread):
         self.graph_total = widget_graph
 
     def __del__(self):
-        self.wait()
+        self.wait()        
         
         
-        
-    def run(self):        
-        
+    def run(self):            
         
         self.graph_total.canvas.ax.clear()
 

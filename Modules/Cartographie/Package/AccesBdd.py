@@ -362,8 +362,8 @@ class Carto_BDD():
                                        self.ADMIN_CARTO.SIMULATION, 
                                        self.ADMIN_CARTO.CONFORMITE_GLOBALE).\
                                        join(self.CMR, self.ADMIN_CARTO.ID_OPERATEUR == self.CMR.ID_CMR )\
-                                       .order_by(self.ADMIN_CARTO.ID_CARTO.desc())\
-                                       .limit(100)
+                                       .order_by(self.ADMIN_CARTO.ID_CARTO.desc())#\
+#                                       .limit(100)
                                        
     #            print(result.all())
                 return result.all()                      
@@ -396,9 +396,7 @@ class Carto_BDD():
             try:
                 id_operateur = session.query(self.CMR.ID_CMR).filter(self.CMR.NOM == donnees["administratif"]["responsable_mesure"].split()[0], self.CMR.PRENOM == donnees["administratif"]["responsable_mesure"].split()[1]).first()[0]
                 
-                if donnees["resultats"]["conclusion_generale"] == "Enceinte non Conforme"\
-                    or donnees["resultats"]["conclusion_generale"] == "Enceinte non Conforme.\
-                            La simulation de la température à cœur du CGR est non conforme":
+                if  "Enceinte non Conforme" in donnees["resultats"]["conclusion_generale"]:
                     enceinte_conforme = False
                 else:
                     enceinte_conforme = True
