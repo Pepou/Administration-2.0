@@ -148,17 +148,23 @@ class Instrument():
                     if ele["REF_INSTRUMENT"] and ele["REF_INSTRUMENT"]!= "None" and ele["REF_INSTRUMENT"] != "nan":
                         try:
                             id_instrum_lie = session.query(self.INSTRUMENTS.ID_INSTRUM).filter(self.INSTRUMENTS.IDENTIFICATION == ele["REF_INSTRUMENT"]).first()[0]
-    #                    print(id_instrum_lie)
+#                            print(id_instrum_lie)
                             instrum_a_modif.REF_INSTRUMENT = int(float(id_instrum_lie))
                         except:
-                            instrum_a_modif.INSTRUMENT_LIE = False
-                            instrum_a_modif.REF_INSTRUMENT = None
+                            try:
+#                                print("premeir bloc")
+                                id_instrum_lie = int(float(ele["REF_INSTRUMENT"]))
+                                instrum_a_modif.INSTRUMENT_LIE = True
+                                instrum_a_modif.REF_INSTRUMENT = id_instrum_lie
+#                                print(id_instrum_lie)
+                            except:                            
+                                instrum_a_modif.INSTRUMENT_LIE = False
+                                instrum_a_modif.REF_INSTRUMENT = None
                     else:
                         instrum_a_modif.INSTRUMENT_LIE = False
                         instrum_a_modif.REF_INSTRUMENT = None
                             
-                session.flush()
-                
+                session.flush()                
             session.commit()
 
         except Exception as e:

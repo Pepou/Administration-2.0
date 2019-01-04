@@ -1200,7 +1200,7 @@ en régime établi dans l'espace de travail) : Hθ </string>
        <attribute name="title">
         <string>Conformite</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_14">
+       <layout class="QVBoxLayout" name="verticalLayout_27">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_9">
           <item>
@@ -1236,10 +1236,84 @@ en régime établi dans l'espace de travail) : Hθ </string>
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>0</height>
+              <height>200</height>
              </size>
             </property>
            </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_17">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_14">
+            <item>
+             <widget class="QLabel" name="label_48">
+              <property name="text">
+               <string>Motif caracterisation</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBox_motif_carto">
+              <item>
+               <property name="text">
+                <string>*</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Mise en Service</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Suite intervention</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Suivi d'enceinte</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_26">
+            <item>
+             <widget class="QLabel" name="label_49">
+              <property name="text">
+               <string>Charge Enceinte</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBox_charge">
+              <item>
+               <property name="text">
+                <string>*</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>à vide</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>≤ 50%</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>&gt; 50%</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -1267,7 +1341,7 @@ en régime établi dans l'espace de travail) : Hθ </string>
           <item>
            <widget class="QTextEdit" name="textEdit_objet_remarques">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -1300,10 +1374,16 @@ en régime établi dans l'espace de travail) : Hθ </string>
           <item>
            <widget class="QTableWidget" name="tableWidget_conf_par_capteur">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>150</height>
+             </size>
             </property>
             <property name="frameShape">
              <enum>QFrame::StyledPanel</enum>
@@ -1356,7 +1436,7 @@ en régime établi dans l'espace de travail) : Hθ </string>
           <item>
            <widget class="QTextEdit" name="textEdit_conclusion_generale">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -1364,7 +1444,7 @@ en régime établi dans l'espace de travail) : Hθ </string>
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>100</height>
+              <height>50</height>
              </size>
             </property>
            </widget>
@@ -1395,7 +1475,7 @@ en régime établi dans l'espace de travail) : Hθ </string>
           <item>
            <widget class="QTextEdit" name="textEdit_conseils">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -1403,7 +1483,7 @@ en régime établi dans l'espace de travail) : Hθ </string>
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>100</height>
+              <height>0</height>
              </size>
             </property>
            </widget>

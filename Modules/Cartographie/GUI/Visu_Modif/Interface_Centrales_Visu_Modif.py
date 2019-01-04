@@ -177,11 +177,17 @@ class Exploitation_Centrales_Visu_Modif(QMainWindow, Ui_Exploitation_Centrales_V
         self.comboBox_nom_centrale.setCurrentIndex(index)
         
         ###Tableau centrale
+        
+        #mise en place des "*" pour les sondes non utilisées
+        for ligne in range (self.tableWidget_sondes_centrale.rowCount()):            
+            self.tableWidget_sondes_centrale.setItem(ligne, 2, QTableWidgetItem("*"))
+        
         for sonde in table_centrale:
 #            print(sonde.IDENT_SONDE)        
             ligne = self.tableWidget_sondes_centrale.findItems (sonde.IDENT_SONDE, Qt.MatchExactly)[0].row()
 #            print(f"sonde {sonde.IDENT_SONDE} trouvéee ligne {ligne}")
             if ligne or ligne == 0:
+                
                 #position sonde
                 index = self.tableWidget_sondes_centrale.cellWidget(ligne, 1).findText(sonde.POSITION_SONDE.split()[0], Qt.MatchExactly)
                 self.tableWidget_sondes_centrale.cellWidget(ligne, 1).setCurrentIndex(index)
@@ -221,6 +227,7 @@ class Exploitation_Centrales_Visu_Modif(QMainWindow, Ui_Exploitation_Centrales_V
                     
                 item_derive =  QTableWidgetItem(str(sonde.DERIVE))
                 self.tableWidget_sondes_centrale.setItem(ligne, 10, item_derive)
+        
         
         ###Correction des donnees
         if table_donnees.CORRECTION_DONNEES :
@@ -1248,11 +1255,12 @@ class Exploitation_Centrales_Visu_Modif(QMainWindow, Ui_Exploitation_Centrales_V
                     nom_fichier = self.tableWidget_sondes_centrale.item(ligne, 2).text() 
                 except:
                     nom_fichier = None
-            
+#            print(nom_fichier)
             if self.tableWidget_sondes_centrale.cellWidget(ligne, 1).currentText() != "*" and (
-                                                    nom_fichier or nom_fichier !="*"):
+                                                    nom_fichier and nom_fichier !="*"):
                 
                 nom_voie = self.tableWidget_sondes_centrale.item(ligne, 0).text()
+                
                 emplacement = self.tableWidget_sondes_centrale.cellWidget(ligne, 1).currentText()                
                 
                 u_etal = decimal.Decimal(str(self.tableWidget_sondes_centrale.item(ligne, 6).text()))\
@@ -1828,6 +1836,47 @@ class Exploitation_Centrales_Visu_Modif(QMainWindow, Ui_Exploitation_Centrales_V
                     
                     
                     
+    @pyqtSlot(int)
+    def on_comboBox_motif_carto_currentIndexChanged(self, index):
+        """mise en place de commentaire"""
+
+        if index>0:
+            list_text =  self.textEdit_objet_remarques.toPlainText().splitlines()
+            self.textEdit_objet_remarques.clear()
+            list_text_modif = [x for x in list_text if "Caractérisation" not in x]
+
+            if index == 1:
+                list_text_modif.insert(0, "Caractérisation suite à une mise en service.")
+            elif index == 2:
+                list_text_modif.insert(0, "Caractérisation suite à une intervention.")
+            elif index == 3:
+                list_text_modif.insert(0, "Caractérisation dans la cadre d'un suivi périodique.")
+
+            for ele in list_text_modif:
+                self.textEdit_objet_remarques.append(ele)
+                
+                
+    @pyqtSlot(int)
+    def on_comboBox_charge_currentIndexChanged(self, index):
+        """mise en place de commentaire"""
+
+        if index>0:
+            list_text =  self.textEdit_objet_remarques.toPlainText().splitlines()
+            self.textEdit_objet_remarques.clear()
+            list_text_modif = [x for x in list_text if "Prestation" not in x]
+
+            if index == 1:
+                list_text_modif.insert(1, "Prestation réalisée à vide.")
+            elif index == 2:
+                list_text_modif.insert(1, "Prestation réalisée avec une charge ≤ à 50% de la capacité totale de l'enceinte.")
+            elif index == 3:
+                list_text_modif.insert(1, "Prestation réalisée avec une charge > à 50% de la capacité totale de l'enceinte.")
+
+            for ele in list_text_modif:
+                self.textEdit_objet_remarques.append(ele)
+    
+    
+    
     def nettoyage_onglet_simu(self):
         """ fonction qui efface l'onglet simulation"""
         

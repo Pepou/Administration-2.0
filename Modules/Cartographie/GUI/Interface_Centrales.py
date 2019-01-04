@@ -1121,7 +1121,7 @@ class Exploitation_Centrales(QMainWindow, Ui_Exploitation_Centrales):
                     nom_fichier = None
             
             if self.tableWidget_sondes_centrale.cellWidget(ligne, 1).currentText() != "*" and (
-                                                    nom_fichier or nom_fichier !="*"):               
+                                                    nom_fichier and nom_fichier !="*"):               
                 nom_voie = self.tableWidget_sondes_centrale.item(ligne, 0).text()
                 emplacement = self.tableWidget_sondes_centrale.cellWidget(ligne, 1).currentText()                
                 
@@ -1795,11 +1795,11 @@ class Exploitation_Centrales(QMainWindow, Ui_Exploitation_Centrales):
             list_text_modif = [x for x in list_text if "Prestation" not in x]
 
             if index == 1:
-                list_text_modif.insert(1, "Prestation realisée à vide.")
+                list_text_modif.insert(1, "Prestation réalisée à vide.")
             elif index == 2:
-                list_text_modif.insert(1, "Prestation realisée avec une charge ≤ à 50% de la capacité totale de l'enceinte.")
+                list_text_modif.insert(1, "Prestation réalisée avec une charge ≤ à 50% de la capacité totale de l'enceinte.")
             elif index == 3:
-                list_text_modif.insert(1, "Prestation realisée avec une charge > à 50% de la capacité totale de l'enceinte.")
+                list_text_modif.insert(1, "Prestation réalisée avec une charge > à 50% de la capacité totale de l'enceinte.")
 
             for ele in list_text_modif:
                 self.textEdit_objet_remarques.append(ele)

@@ -175,6 +175,11 @@ class Exploitation_Centrales_Annule_Remplace(QMainWindow, Ui_Exploitation_Centra
         self.comboBox_nom_centrale.setCurrentIndex(index)
         
         ###Tableau centrale
+        
+        #mise en place des "*" pour les sondes non utilisées
+        for ligne in range (self.tableWidget_sondes_centrale.rowCount()):            
+            self.tableWidget_sondes_centrale.setItem(ligne, 2, QTableWidgetItem("*"))
+            
         for sonde in table_centrale:
 #            print(sonde.IDENT_SONDE)        
             ligne = self.tableWidget_sondes_centrale.findItems (sonde.IDENT_SONDE, Qt.MatchExactly)[0].row()
@@ -1242,7 +1247,7 @@ class Exploitation_Centrales_Annule_Remplace(QMainWindow, Ui_Exploitation_Centra
                     nom_fichier = None
                     
             if self.tableWidget_sondes_centrale.cellWidget(ligne, 1).currentText() != "*" and (
-                                                    nom_fichier or nom_fichier !="*"):
+                                                    nom_fichier and nom_fichier !="*"):
                 
                 nom_voie = self.tableWidget_sondes_centrale.item(ligne, 0).text()
                 emplacement = self.tableWidget_sondes_centrale.cellWidget(ligne, 1).currentText()                
@@ -1802,6 +1807,7 @@ class Exploitation_Centrales_Annule_Remplace(QMainWindow, Ui_Exploitation_Centra
             QMessageBox.critical(self, 
                     self.trUtf8("Condition Désirée"), 
                     self.trUtf8("La valeur de la condition désirée saisie n'est pas conforme"))
+    
     @pyqtSlot(str)
     def on_lineEdit_consigne_textChanged(self, p0):
         
@@ -1817,6 +1823,48 @@ class Exploitation_Centrales_Annule_Remplace(QMainWindow, Ui_Exploitation_Centra
                     
                     
                     
+    @pyqtSlot(int)
+    def on_comboBox_motif_carto_currentIndexChanged(self, index):
+        """mise en place de commentaire"""
+
+        if index>0:
+            list_text =  self.textEdit_objet_remarques.toPlainText().splitlines()
+            self.textEdit_objet_remarques.clear()
+            list_text_modif = [x for x in list_text if "Caractérisation" not in x]
+
+            if index == 1:
+                list_text_modif.insert(0, "Caractérisation suite à une mise en service.")
+            elif index == 2:
+                list_text_modif.insert(0, "Caractérisation suite à une intervention.")
+            elif index == 3:
+                list_text_modif.insert(0, "Caractérisation dans la cadre d'un suivi périodique.")
+
+            for ele in list_text_modif:
+                self.textEdit_objet_remarques.append(ele)
+                
+                
+    @pyqtSlot(int)
+    def on_comboBox_charge_currentIndexChanged(self, index):
+        """mise en place de commentaire"""
+
+        if index>0:
+            list_text =  self.textEdit_objet_remarques.toPlainText().splitlines()
+            self.textEdit_objet_remarques.clear()
+            list_text_modif = [x for x in list_text if "Prestation" not in x]
+
+            if index == 1:
+                list_text_modif.insert(1, "Prestation réalisée à vide.")
+            elif index == 2:
+                list_text_modif.insert(1, "Prestation réalisée avec une charge ≤ à 50% de la capacité totale de l'enceinte.")
+            elif index == 3:
+                list_text_modif.insert(1, "Prestation réalisée avec une charge > à 50% de la capacité totale de l'enceinte.")
+
+            for ele in list_text_modif:
+                self.textEdit_objet_remarques.append(ele)
+
+
+
+
     def nettoyage_onglet_simu(self):
         """ fonction qui efface l'onglet simulation"""
         

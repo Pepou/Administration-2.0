@@ -60,3 +60,30 @@ class matplotlibWidget(QtGui.QWidget):
         self.canvas.fig.savefig(imgdata, format = 'png')
         imgdata.seek(0)
         return imgdata
+        
+    
+#        toolbar = self.canvas.get_current_fig_manager().toolbar
+#        if toolbar.mode!='':
+#            print("You clicked on something, but toolbar is in mode {:s}.".format(toolbar.mode))
+#        else:
+#            print("You {0}-clicked coords ({1},{2}) (pix ({3},{4}))".format(button[event.button+1],\
+#                                                                                 event.xdata,\
+#                                                                                 event.ydata,\
+#                                                                                 event.x,\
+#                                                                                 event.y))
+#        
+#        
+#class NavigationToolbar( NavigationToolbar2QT ):
+#    
+#    def onclick(self, event):
+##        """Deal with click events"""
+##        button = ['left','middle','right']
+#        print(event)
+##    def pickerToggled( self, checked ):
+##        if checked:            
+##            if self._active == "PAN":
+##                self.pan()
+##            elif self._active == "ZOOM":
+##                print("coucou tu zoomes zommezen")
+##                self.zoom()
+##            self.set_message('Reject/use observation')
