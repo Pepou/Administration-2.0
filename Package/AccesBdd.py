@@ -877,6 +877,54 @@ class Client():
 
 
 
+class Prestation():
+    """class permettant de rapatrier l'ensemble des prestations en fct du domaine"""
+
+def __init__(self,engine, domaine):
+        
+#        Base = automap_base()
+        self.engine = engine     
+#        self.meta = MetaData()
+        self.connection = engine.connect()
+        self.DBSession = sessionmaker(bind=engine)
+        
+        metadata = MetaData() 
+        metadata.reflect(engine, only=['ETALONNAGE_TEMP_ADMINISTRATION', 'ETALONNAGE_RESULTAT', 
+                                        'CONFORMITE_TEMP_RESULTAT'])
+        self.Base = automap_base(metadata=metadata)
+        
+        self.Base.prepare()
+        
+def prestation_temperature(self, nom_instrum):
+    """recupere les prestations effectuees sur un instrum"""
+    
+    
+    Session = sessionmaker(bind= self.engine)
+    session = Session()
+    
+    ETAL_TEMP = self.Base.classes.ETALONNAGE_TEMP_ADMINISTRATION
+    ETAL_RESULT = self.Base.classes.ETALONNAGE_RESULTAT
+    
+    result = session.query(ETAL_TEMP.IDENTIFICATION_INSTRUM, 
+                            ETAL_TEMP.DATE_ETAL, 
+                            ETAL_TEMP.NUM_DOCUMENT, 
+                            ETAL_TEMP.ANNULE_NUM_DOC, 
+                            ETAL_TEMP.NBR_PT_ETALONNAGE, 
+                            ETAL_TEMP.NOM_PROC, 
+                            ETAL_TEMP.ETAT_RECEPTION,
+                            ETAL_RESULT.MOYENNE_ETAL_C, 
+                            ETAL_RESULT.MOYENNE_INSTRUM,
+                            ETAL_RESULT.MOYENNE_CORRECTION, 
+                            ETAL_RESULT.U)\
+                            .join(ETAL_RESULT, ETAL_TEMP == ETAL_RESULT.ID_ETALONNAGE)\
+                            .filter(ETAL_TEMP.IDENTIFICATION_INSTRUM == nom_instrum)\
+                            .all()
+    
+    
+    
+#        self.ENT_CLIENT = Base.classes.ENTITE_CLIENT
+#        self.CLIENTS = Base.classes.CLIENTS
+#        self.SERVICE = Base.classes.SERVICES_CLIENT
 
 
 

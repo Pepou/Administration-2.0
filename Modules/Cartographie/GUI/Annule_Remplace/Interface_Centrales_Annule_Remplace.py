@@ -1589,13 +1589,13 @@ class Exploitation_Centrales_Annule_Remplace(QMainWindow, Ui_Exploitation_Centra
                 valeur_haute = temp_desiree + emt
                 valeur_basse = temp_desiree - emt
                 
-                if ( y + err ) <= valeur_haute and ( y + err ) >= valeur_basse:
+                if ( y + err ) <= valeur_haute and ( y - err ) >= valeur_basse:
                     conforme = True
 #                    resultat_conf = "{} : {}".format(index_result[i],"Conforme")                
                 elif y> valeur_haute or y< valeur_basse:
                     conforme = False
 #                    resultat_conf = "{} : {}".format(index_result[i],"Non Conforme")
-                elif ( y + err ) > valeur_haute or ( y + err ) < valeur_basse:
+                elif ( y + err ) > valeur_haute or ( y - err ) < valeur_basse:
                     conforme = False
 #                    resultat_conf = "{} : {}".format(index_result[i],"Conforme avec Risque")
                     

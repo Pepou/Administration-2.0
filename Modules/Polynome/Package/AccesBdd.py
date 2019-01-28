@@ -31,14 +31,17 @@ class AccesBdd():
 
     def resencement_instrument(self):
         '''retourne tous les identifications des instruments dans une list'''
+#        print("coucou")
 
-        result = self.connection.execute('SELECT "IDENTIFICATION" FROM "INSTRUMENTS"')
+        result = self.connection.execute('''SELECT "IDENTIFICATION" FROM "INSTRUMENTS" WHERE "ETAT_UTILISATION" = 'En service' ''')
         
         instruments = []        
-        for ele in result:            
-            instruments.append(ele[0]) #mise en forme
+        for ele in result:
+            if ele:
+                instruments.append(ele[0]) #mise en forme
+
         return instruments
-    
+        
     
     
     def resencement_instrument_table_polynome_correction(self):

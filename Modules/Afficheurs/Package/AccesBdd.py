@@ -88,7 +88,8 @@ class AccesBdd():
         
         identification_afficheurs = []
         for ele in result:
-          identification_afficheurs.append(ele[1])
+            if ele :
+                identification_afficheurs.append(ele[1])
           
         return  identification_afficheurs
         

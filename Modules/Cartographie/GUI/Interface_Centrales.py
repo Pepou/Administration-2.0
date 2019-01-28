@@ -1139,26 +1139,26 @@ class Exploitation_Centrales(QMainWindow, Ui_Exploitation_Centrales):
                                                 u_etal, n_ce, date_etal,  resolution, derive])
             else:
                 if self.tableWidget_sondes_centrale.cellWidget(ligne, 1).currentText() != "*" \
-                    and self.tableWidget_sondes_centrale.cellWidget(ligne, 2).currentText() !="*": ###### probleme pour centrale et EBEOR vs DATALOG
-                                    
-                    nom_voie = self.tableWidget_sondes_centrale.item(ligne, 0).text()
-                    emplacement = self.tableWidget_sondes_centrale.cellWidget(ligne, 1).currentText()                
-                    try:
-                        nom_fichier = self.tableWidget_sondes_centrale.item(ligne, 2).text()              
-                    except:
-                        nom_fichier =self.tableWidget_sondes_centrale.cellWidget(ligne, 2).currentText()
+                    and (nom_fichier and nom_fichier !="*"):
                         
-                    u_etal = decimal.Decimal(str(self.tableWidget_sondes_centrale.item(ligne, 6).text()))\
-                                        .quantize(decimal.Decimal(str(0.01)),rounding = decimal.ROUND_UP)
-                                        
-                    n_ce = self.tableWidget_sondes_centrale.item(ligne, 7).text()
-                    date_etal = self.tableWidget_sondes_centrale.item(ligne, 8).text()
-                    
-                    resolution = self.tableWidget_sondes_centrale.item(ligne, 9).text()
-                    derive = self.tableWidget_sondes_centrale.item(ligne, 10).text()
-                    
-                    tableau_sondes_centrale.append([nom_voie, emplacement,nom_fichier, 
-                                                    u_etal, n_ce, date_etal,  resolution, derive])
+                        nom_voie = self.tableWidget_sondes_centrale.item(ligne, 0).text()
+                        emplacement = self.tableWidget_sondes_centrale.cellWidget(ligne, 1).currentText()                
+#                        try:
+#                            nom_fichier = self.tableWidget_sondes_centrale.item(ligne, 2).text()              
+#                        except:
+#                            nom_fichier =self.tableWidget_sondes_centrale.cellWidget(ligne, 2).currentText()
+#                            
+                        u_etal = decimal.Decimal(str(self.tableWidget_sondes_centrale.item(ligne, 6).text()))\
+                                            .quantize(decimal.Decimal(str(0.01)),rounding = decimal.ROUND_UP)
+                                            
+                        n_ce = self.tableWidget_sondes_centrale.item(ligne, 7).text()
+                        date_etal = self.tableWidget_sondes_centrale.item(ligne, 8).text()
+                        
+                        resolution = self.tableWidget_sondes_centrale.item(ligne, 9).text()
+                        derive = self.tableWidget_sondes_centrale.item(ligne, 10).text()
+                        
+                        tableau_sondes_centrale.append([nom_voie, emplacement,nom_fichier, 
+                                                        u_etal, n_ce, date_etal,  resolution, derive])
                  
 #        print(f"tableau avant bdd {tableau_sondes_centrale}")
         
@@ -1494,13 +1494,13 @@ class Exploitation_Centrales(QMainWindow, Ui_Exploitation_Centrales):
                 valeur_haute = temp_desiree + emt
                 valeur_basse = temp_desiree - emt
                 
-                if ( y + err ) <= valeur_haute and ( y + err ) >= valeur_basse:
+                if ( y + err ) <= valeur_haute and ( y - err ) >= valeur_basse:
                     conforme = True
 #                    resultat_conf = "{} : {}".format(index_result[i],"Conforme")                
                 elif y> valeur_haute or y< valeur_basse:
                     conforme = False
 #                    resultat_conf = "{} : {}".format(index_result[i],"Non Conforme")
-                elif ( y + err ) > valeur_haute or ( y + err ) < valeur_basse:
+                elif ( y + err ) > valeur_haute or ( y - err ) < valeur_basse:
                     conforme = False
 #                    resultat_conf = "{} : {}".format(index_result[i],"Conforme avec Risque")
                     

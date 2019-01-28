@@ -11,7 +11,7 @@ class Config():
     
     __adress_bdd = "10.42.1.74"
     __port_bdd= "5434"
-    __name_bdd= "Labo_Metro_Prod"#"test_modif"#"Labo_Metro_Prod" #
+    __name_bdd= "Labo_Metro_Prod"#"Labo_Metro_Prod"#"test_modif"#"Labo_Metro_Prod" #
     __site= "LMS"
     engine=""
     login=""

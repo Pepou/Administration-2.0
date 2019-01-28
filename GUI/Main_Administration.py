@@ -556,6 +556,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except (UnboundLocalError, AttributeError):
             pass
             
+    
+    @pyqtSlot(str)
+    def on_lineEdit_recherche_instrum_prest_textChanged(self, p0):
+        print(p0)
+    
     @pyqtSlot(int)
     def on_comboBox_signe_currentIndexChanged(self, index):
         """
