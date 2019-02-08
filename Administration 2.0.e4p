@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric5 project file for project Administration 2.0 -->
-<!-- Saved: 2018-10-18, 17:49:32 -->
-<!-- Copyright (C) 2018 F.Cariou, francois.cariou@efs.sante.fr -->
+<!-- Saved: 2019-02-08, 10:23:08 -->
+<!-- Copyright (C) 2019 F.Cariou, francois.cariou@efs.sante.fr -->
 <Project version="5.1">
   <Language>fr_FR</Language>
   <Hash>84cd45c746850b65296d0e62e4998856a107f2ef</Hash>
@@ -276,6 +276,11 @@
     <Form>Modules/Reception_expedition/GUI/Reception_Expedition.ui</Form>
     <Form>Modules/Reception_expedition/BondeLivraison/GUI/BonLivraison.ui</Form>
     <Form>Modules/Reception_expedition/BondeReception/GUI/BonReception.ui</Form>
+    <Form>Modules/Caracterisation_generateurs_temperature/GUI/Caracterisation_Bain/Caracterisation_Bain.ui</Form>
+    <Form>Modules/Caracterisation_generateurs_temperature/GUI/Caracterisation_Bain/Caracterisation_Bain_maj_visualisation.ui</Form>
+    <Form>Modules/Caracterisation_generateurs_temperature/GUI/Caracterisation_enceinte/Interface_caracterisation_enceinte.ui</Form>
+    <Form>Modules/Caracterisation_generateurs_temperature/GUI/Caracterisation_enceinte/Interface_modification_caracterisation_enceinte.ui</Form>
+    <Form>Modules/Caracterisation_generateurs_temperature/GUI/Caracterisation_enceinte/Interface_visualisation_caracterisation_enceinte.ui</Form>
   </Forms>
   <Translations/>
   <Resources>

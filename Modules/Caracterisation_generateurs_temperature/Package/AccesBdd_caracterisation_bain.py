@@ -45,8 +45,9 @@ class AccesBdd_caracterisation_Bain():
         table = Table("INSTRUMENTS", self.meta)
         ins = select([table.c.ID_INSTRUM, table.c.IDENTIFICATION,table.c.CONSTRUCTEUR, table.c.REFERENCE_CONSTRUCTEUR, \
                             table.c.N_SERIE, table.c.ETAT_UTILISATION])\
-                        .where(and_(table.c.ETAT_UTILISATION == "En service", table.c.DESIGNATION == "Centrale de température"))
+                        .where(and_(func.lower(table.c.ETAT_UTILISATION) == func.lower("En service"), table.c.DESIGNATION == "Centrale de température"))
         centrales = self.connection.execute(ins).fetchall()
+#        print(f"centrales {centrales}")
         return centrales
         
     def sondes_centrales(self):
@@ -54,8 +55,12 @@ class AccesBdd_caracterisation_Bain():
         table = Table("INSTRUMENTS", self.meta)
         ins = select([table.c.ID_INSTRUM, table.c.IDENTIFICATION,table.c.CONSTRUCTEUR, table.c.REFERENCE_CONSTRUCTEUR, \
                             table.c.N_SERIE, table.c.ETAT_UTILISATION, table.c.REF_INSTRUMENT])\
-                        .where(and_(table.c.ETAT_UTILISATION == "En service", table.c.INSTRUMENT_LIE == True))
+                        .where(and_(func.lower(table.c.ETAT_UTILISATION) == func.lower("En service"), table.c.INSTRUMENT_LIE == True))
         sondes = self.connection.execute(ins).fetchall()
+        
+        
+        sondes_data = [x for x in sondes if x[6] == 999]
+#        print(f"sondes {sondes_data}")
         return sondes
         
     

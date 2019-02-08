@@ -100,6 +100,8 @@ class AccesBdd():
                     if len (result) != 0:                  
                         list_expedition.append((date_expedition, instrument[0], instrument[1], result[len(result)-1][0], result[len(result)-1][1].strftime("%d-%m-%Y" ), site, affectation))
                 
+                elif result[0] in ["PIPETTE"]:
+                    list_expedition.append((date_expedition, instrument[0], instrument[1], None, None, site, affectation))
             else:
                 list_expedition.append((date_expedition, instrument[0], instrument[1], None, None, site, affectation))
         

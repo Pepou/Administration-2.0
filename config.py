@@ -29,7 +29,7 @@ class Config():
         Config.engine = create_engine("postgresql+psycopg2://{}:{}@{}:{}/{}".format(login, password, Config.__adress_bdd, Config.__port_bdd, Config.__name_bdd)) 
         Config.login = login
         Config.password = password
-    
+#        print(Config.engine)
     
     modif_engine = classmethod(modif_engine)
 

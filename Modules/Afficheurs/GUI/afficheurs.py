@@ -1570,6 +1570,7 @@ class Afficheurs(QMainWindow, Ui_MainWindow):
         self.textEdit_renseignementresultat.clear()
         
         self.nettoyage_tableaux()
+        self.on_comboBox_famille_afficheur_activated(0)
         
     @pyqtSlot()
     def on_actionArchivage_triggered(self):
