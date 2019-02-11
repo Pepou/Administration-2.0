@@ -59,7 +59,7 @@ class AccesBdd_caracterisation_Bain():
         sondes = self.connection.execute(ins).fetchall()
         
         
-        sondes_data = [x for x in sondes if x[6] == 999]
+#        sondes_data = [x for x in sondes if x[6] == 999]
 #        print(f"sondes {sondes_data}")
         return sondes
         

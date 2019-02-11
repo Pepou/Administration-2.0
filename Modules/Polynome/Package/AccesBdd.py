@@ -33,7 +33,7 @@ class AccesBdd():
         '''retourne tous les identifications des instruments dans une list'''
 #        print("coucou")
 
-        result = self.connection.execute('''SELECT "IDENTIFICATION" FROM "INSTRUMENTS" WHERE "ETAT_UTILISATION" = 'En service' ''')
+        result = self.connection.execute('''SELECT "IDENTIFICATION" FROM "INSTRUMENTS" WHERE "ETAT_UTILISATION" = 'En service' or  "ETAT_UTILISATION" = 'En Service' ''')
         
         instruments = []        
         for ele in result:
