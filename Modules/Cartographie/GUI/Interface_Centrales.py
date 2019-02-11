@@ -1059,6 +1059,7 @@ class Exploitation_Centrales(QMainWindow, Ui_Exploitation_Centrales):
         
         #gestion enceinte:
         administratif["ident_enceinte"]= self.lineEdit_enceinte.text()
+        administratif["design"] = next(self.db.recup_designation_par_ident(administratif["ident_enceinte"]))
         administratif["design_litt"] = self.lineEdit_designation_litt.text()
         administratif["constructeur_enceinte"]= self.lineEdit_constructeur.text()
         administratif["model_enceinte"]= self.lineEdit_model.text()

@@ -157,7 +157,7 @@ class Rapport():
 
         c.setFont("Arial", 8)
         c.drawString(1.7*cm,13.8*cm,"Désignation :")
-        c.drawString(4.5*cm,13.8*cm,"Enceinte Réfrigérée")
+        c.drawString(4.5*cm,13.8*cm,administratif["design_litt"])
         
         c.drawString(9.6*cm,13.8*cm,"Désignation Littérale :")
         c.drawString(13*cm,13.8*cm,administratif["design_litt"])
