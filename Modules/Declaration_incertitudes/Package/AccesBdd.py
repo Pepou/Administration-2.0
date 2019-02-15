@@ -33,8 +33,7 @@ class AccesBdd():
         u = max([float(x[0]) for x in result if x[0]])
         
         return u
-    
-    
+
      
     def generateurs(self):
         table = Table("INSTRUMENTS", self.meta)
@@ -48,7 +47,11 @@ class AccesBdd():
         table = Table("INSTRUMENTS", self.meta)
         ins = select([table.c.ID_INSTRUM, table.c.IDENTIFICATION,table.c.CONSTRUCTEUR, table.c.REFERENCE_CONSTRUCTEUR, \
                             table.c.N_SERIE, table.c.ETAT_UTILISATION])\
-                        .where(and_(func.lower(table.c.ETAT_UTILISATION) == func.lower("En service"), table.c.DESIGNATION.contains("Etalon")))
+                        .where(and_(func.lower(table.c.ETAT_UTILISATION) == func.lower("En service"), 
+                                    func.lower(table.c.DESIGNATION).contains(func.lower("Etalon")), 
+                                    func.lower(table.c.TYPE) != func.lower("Generateur de Temperature")))\
+                        .order_by(table.c.IDENTIFICATION)
+                        
         etalons = self.connection.execute(ins).fetchall()
         
 #        print(f"etalon {etalons}")
