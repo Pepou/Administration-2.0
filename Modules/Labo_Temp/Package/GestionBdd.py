@@ -241,7 +241,7 @@ class GestionBdd:
     def gestion_combobox_etalon(self):
         query = QtSql.QSqlQuery()
 
-        requete =str("""SELECT "IDENTIFICATION" FROM "INSTRUMENTS" WHERE ("DESIGNATION" = 'Etalon' OR "DESIGNATION" = 'Etalon de Référence')
+        requete =str("""SELECT "IDENTIFICATION" FROM "INSTRUMENTS" WHERE (UPPER("DESIGNATION") = UPPER('Etalon') OR UPPER("DESIGNATION") = UPPER('Etalon de Référence'))
                                                                         AND "ETAT_UTILISATION" = 'En service' ORDER BY "ID_INSTRUM";""")
         query.exec_(requete)  
         etalons = []
